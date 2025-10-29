@@ -240,137 +240,146 @@ const CashbookTable = () => {
   };
 
   return (
-    <div className="bg-white bg-opacity-80 backdrop-blur-sm p-3 sm:p-2 rounded-2xl shadow-xl border border-white border-opacity-20 min-h-[calc(100vh-12rem)]">
-      <div className="mb-4 flex flex-col sm:flex-row flex-wrap gap-4">
-        <input
-          type="text"
-          placeholder="Search particulars..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 flex-1 min-w-0"
-        />
-        <input
-          type="date"
-          placeholder="From date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-auto"
-        />
-        <button
-          onClick={handleExport}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium w-full sm:w-auto"
-        >
-          Export to Excel
-        </button>
+    <div className="bg-white bg-opacity-80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-white border-opacity-20">
+      {/* Search and Filter Controls */}
+      <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <input
+            type="text"
+            placeholder="Search particulars..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+          />
+        </div>
+        <div className="sm:w-auto w-full">
+          <input
+            type="date"
+            placeholder="From date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+          />
+        </div>
+        <div className="sm:w-auto w-full">
+          <button
+            onClick={handleExport}
+            className="w-full bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          >
+            Export to Excel
+          </button>
+        </div>
       </div>
-      <div className="overflow-x-auto max-w-full h-80 sm:h-96" style={{ scrollbarWidth: 'thin', scrollbarColor: '#9CA3AF #E5E7EB' }}>
-        <table className="w-full min-w-[800px] table-auto border-collapse">
-          <thead>
-            <tr className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-              <th className="px-2 py-1 text-left font-semibold text-sm min-w-[100px]">Date</th>
-              <th className="px-2 py-1 text-left font-semibold text-sm min-w-[150px]">Particulars</th>
-              <th className="px-2 py-1 text-left font-semibold text-sm min-w-[100px]">Receipt No</th>
-              <th className="px-2 py-1 text-left font-semibold text-sm min-w-[100px]">Receipt (₵)</th>
-              <th className="px-2 py-1 text-left font-semibold text-sm min-w-[100px]">Payment (₵)</th>
-              <th className="px-2 py-1 text-left font-semibold text-sm min-w-[100px]">Balance (₵)</th>
-              <th className="px-2 py-1 text-center font-semibold text-sm min-w-[120px]">Actions</th>
+
+      {/* Table Container */}
+      <div className="overflow-x-auto overflow-y-auto max-h-[60vh] sm:max-h-[70vh] rounded-lg border border-gray-200">
+        <table className="w-full min-w-[900px] sm:min-w-[1000px] table-fixed border-collapse">
+          <thead className="bg-gradient-to-r from-green-500 to-emerald-500 text-white sticky top-0 z-10">
+            <tr>
+              <th className="px-3 py-3 text-left font-semibold text-xs sm:text-sm w-[12%] min-w-[100px]">Date</th>
+              <th className="px-3 py-3 text-left font-semibold text-xs sm:text-sm w-[25%] min-w-[150px]">Particulars</th>
+              <th className="px-3 py-3 text-left font-semibold text-xs sm:text-sm w-[15%] min-w-[120px]">Receipt No</th>
+              <th className="px-3 py-3 text-left font-semibold text-xs sm:text-sm w-[12%] min-w-[100px]">Receipt (₵)</th>
+              <th className="px-3 py-3 text-left font-semibold text-xs sm:text-sm w-[12%] min-w-[100px]">Payment (₵)</th>
+              <th className="px-3 py-3 text-left font-semibold text-xs sm:text-sm w-[12%] min-w-[100px]">Balance (₵)</th>
+              <th className="px-3 py-3 text-center font-semibold text-xs sm:text-sm w-[12%] min-w-[120px]">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {filteredEntries.map(entry => (
-              <tr key={entry.id} className="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
-                <td className="px-2 py-1 whitespace-nowrap text-sm min-w-[100px]">
+              <tr key={entry.id} className="hover:bg-gray-50 transition duration-150">
+                <td className="px-3 py-3 text-xs sm:text-sm text-gray-900">
                   {editingId === entry.id ? (
                     <input
                       type="date"
                       value={editData.date || ''}
                       onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                     />
                   ) : (
-                    new Date(entry.date).toISOString().split('T')[0]
+                    <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
                   )}
                 </td>
-                <td className="px-2 py-1 whitespace-nowrap text-sm min-w-[150px]">
+                <td className="px-3 py-3 text-xs sm:text-sm text-gray-900">
                   {editingId === entry.id ? (
                     <input
                       type="text"
                       value={editData.particulars || ''}
                       onChange={(e) => setEditData({ ...editData, particulars: e.target.value })}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                     />
                   ) : (
-                    entry.particulars
+                    <span className="break-words">{entry.particulars}</span>
                   )}
                 </td>
-                <td className="px-2 py-1 whitespace-nowrap text-sm min-w-[100px]">
+                <td className="px-3 py-3 text-xs sm:text-sm text-gray-900">
                   {editingId === entry.id ? (
                     <input
                       type="text"
                       value={editData.receiptNo || ''}
                       onChange={(e) => setEditData({ ...editData, receiptNo: e.target.value })}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                     />
                   ) : (
                     entry.receiptNo
                   )}
                 </td>
-                <td className="px-2 py-1 whitespace-nowrap text-sm min-w-[100px]">
+                <td className="px-3 py-3 text-xs sm:text-sm text-gray-900 text-right">
                   {editingId === entry.id ? (
                     <input
                       type="number"
                       step="0.01"
                       value={editData.receipt || ''}
                       onChange={(e) => setEditData({ ...editData, receipt: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs sm:text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
                     />
                   ) : (
-                    `₵ ${entry.receipt.toFixed(2)}`
+                    <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
                   )}
                 </td>
-                <td className="px-2 py-1 whitespace-nowrap text-sm min-w-[100px]">
+                <td className="px-3 py-3 text-xs sm:text-sm text-gray-900 text-right">
                   {editingId === entry.id ? (
                     <input
                       type="number"
                       step="0.01"
                       value={editData.payment || ''}
                       onChange={(e) => setEditData({ ...editData, payment: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-2 py-1 border rounded text-sm"
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-xs sm:text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
                     />
                   ) : (
-                    `₵ ${entry.payment.toFixed(2)}`
+                    <span className="font-medium text-red-600">₵ {entry.payment.toFixed(2)}</span>
                   )}
                 </td>
-                <td className="px-2 py-1 font-semibold whitespace-nowrap text-sm min-w-[100px]">
-                  ₵ {entry.balance.toFixed(2)}
+                <td className="px-3 py-3 text-xs sm:text-sm text-right">
+                  <span className="font-bold text-green-600">₵ {entry.balance.toFixed(2)}</span>
                 </td>
-                <td className="px-2 py-1 whitespace-nowrap text-sm min-w-[120px]">
+                <td className="px-3 py-3 text-center">
                   {editingId === entry.id ? (
-                    <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-4 justify-center">
+                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
                       <button
                         onClick={handleSaveEdit}
-                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-500"
                       >
                         Save
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-gray-500"
                       >
                         Cancel
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-4 justify-center">
+                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
                       <button
                         onClick={() => handleEdit(entry)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-500"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(entry.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-red-500"
                       >
                         Delete
                       </button>
@@ -381,12 +390,22 @@ const CashbookTable = () => {
             ))}
           </tbody>
         </table>
+
         {filteredEntries.length === 0 && (
-          <div className="text-center py-1 text-gray-500">
-            <p className="text-sm">No entries match your filters.</p>
+          <div className="text-center py-12 text-gray-500">
+            <div className="text-4xl mb-4">📊</div>
+            <p className="text-sm sm:text-base font-medium">No entries found</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">Try adjusting your search filters</p>
           </div>
         )}
       </div>
+
+      {/* Table Info */}
+      {filteredEntries.length > 0 && (
+        <div className="mt-4 text-center text-xs sm:text-sm text-gray-500">
+          Showing {filteredEntries.length} entr{filteredEntries.length === 1 ? 'y' : 'ies'}
+        </div>
+      )}
     </div>
   );
 };

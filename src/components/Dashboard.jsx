@@ -74,11 +74,39 @@ const Dashboard = () => {
 
       {/* Main content */}
       <div className="flex-1 lg:ml-0 min-h-screen">
-        <div className="container mx-auto px-4 py-8 h-full">
-          <div className="flex items-center justify-between mb-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {/* Mobile Header */}
+          <div className="block lg:hidden mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="6" r="2"/>
+                  <circle cx="12" cy="12" r="2"/>
+                  <circle cx="12" cy="18" r="2"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Mobile Layout: Logo above title */}
+            <div className="text-center mb-4">
+              <img src="/logo.jpeg" alt="Anloga Ambulance Station" className="h-12 mx-auto mb-3" onError={(e) => e.target.style.display = 'none'} />
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                {currentPage === 'dashboard' ? 'Anloga Ambulance Cashbook System' :
+                 currentPage === 'entries' ? 'Your Entries' :
+                 'Settings'}
+              </h1>
+              <p className="text-gray-600 text-sm sm:text-base mt-1">Timely Care Saves Lives</p>
+            </div>
+          </div>
+
+          {/* Desktop Header */}
+          <div className="hidden lg:flex items-center justify-between mb-8">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="6" r="2"/>
@@ -86,20 +114,24 @@ const Dashboard = () => {
                 <circle cx="12" cy="18" r="2"/>
               </svg>
             </button>
-            <div className="text-center flex-1 lg:text-left">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent flex items-center justify-center lg:justify-start">
+            <div className="text-center flex-1">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent flex items-center justify-center">
                 <img src="/logo.jpeg" alt="Anloga Ambulance Station" className="h-12 mr-4" onError={(e) => e.target.style.display = 'none'} />
                 <span>
-                  {currentPage === 'dashboard' ? 'Anloga Ambulance Cashbook System' : 
-                   currentPage === 'entries' ? 'Your Entries' : 
+                  {currentPage === 'dashboard' ? 'Anloga Ambulance Cashbook System' :
+                   currentPage === 'entries' ? 'Your Entries' :
                    'Settings'}
                 </span>
               </h1>
-              <p className="text-gray-600">Timely Care Saves Lives</p>
+              <p className="text-gray-600 mt-2">Timely Care Saves Lives</p>
             </div>
-            <div className="lg:hidden"></div> {/* Spacer */}
+            <div></div> {/* Spacer */}
           </div>
-          {renderContent()}
+
+          {/* Content */}
+          <div className="space-y-6 sm:space-y-8">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>

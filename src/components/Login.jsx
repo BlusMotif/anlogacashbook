@@ -13,7 +13,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard');
+      navigate('/welcome');
     } catch (err) {
       Swal.fire({
         icon: 'error',
@@ -27,9 +27,9 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 via-emerald-600 to-teal-500 flex items-center justify-center p-4">
       <div className="bg-white bg-opacity-10 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white border-opacity-20">
-        <div className="flex items-center justify-center mb-6">
-          <img src="/logo.jpeg" alt="Anloga Ambulance Station" className="h-12 mr-3" onError={(e) => e.target.style.display = 'none'} />
-          <h2 className="text-3xl font-bold text-center text-white">Welcome to Anloga Ambulance Cashbook</h2>
+        <div className="text-center mb-6">
+          <img src="/logo.jpeg" alt="Anloga Ambulance Station" className="h-16 mx-auto mb-4" onError={(e) => e.target.style.display = 'none'} />
+          <h2 className="text-3xl font-bold text-white">Welcome to Anloga Ambulance Cashbook</h2>
         </div>
         <form onSubmit={handleLogin}>
           <div className="mb-4">
