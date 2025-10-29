@@ -23,7 +23,7 @@ const Welcome = () => {
         {/* Logo */}
         <div className="mb-8">
           <img
-            src="/logo.jpeg"
+            src="/logo.png"
             alt="Anloga Ambulance Station"
             className="h-20 mx-auto mb-6"
             onError={(e) => e.target.style.display = 'none'}

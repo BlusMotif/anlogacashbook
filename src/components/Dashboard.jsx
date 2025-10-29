@@ -38,11 +38,11 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-emerald-50 to-teal-100 flex">
+    <div className="h-screen bg-gradient-to-br from-green-100 via-emerald-50 to-teal-100 flex overflow-hidden">
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
         <div className="flex items-center justify-center h-16 bg-gradient-to-r from-green-600 to-emerald-600">
-          <img src="/logo.jpeg" alt="Anloga Ambulance Station" className="h-10" onError={(e) => e.target.style.display = 'none'} />
+          <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10" onError={(e) => e.target.style.display = 'none'} />
           <h1 className="text-white text-lg font-bold ml-2">Anloga Ambulance</h1>
         </div>
         <nav className="mt-8">
@@ -73,8 +73,8 @@ const Dashboard = () => {
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}></div>}
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-0 min-h-screen">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <div className="flex-1 lg:ml-0 h-full overflow-y-auto">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 h-full">
           {/* Mobile Header */}
           <div className="block lg:hidden mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -92,7 +92,7 @@ const Dashboard = () => {
 
             {/* Mobile Layout: Logo above title */}
             <div className="text-center mb-4">
-              <img src="/logo.jpeg" alt="Anloga Ambulance Station" className="h-12 mx-auto mb-3" onError={(e) => e.target.style.display = 'none'} />
+              <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mx-auto mb-3" onError={(e) => e.target.style.display = 'none'} />
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {currentPage === 'dashboard' ? 'Anloga Ambulance Cashbook System' :
                  currentPage === 'entries' ? 'Your Entries' :
@@ -116,7 +116,7 @@ const Dashboard = () => {
             </button>
             <div className="text-center flex-1">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent flex items-center justify-center">
-                <img src="/logo.jpeg" alt="Anloga Ambulance Station" className="h-12 mr-4" onError={(e) => e.target.style.display = 'none'} />
+                <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mr-4" onError={(e) => e.target.style.display = 'none'} />
                 <span>
                   {currentPage === 'dashboard' ? 'Anloga Ambulance Cashbook System' :
                    currentPage === 'entries' ? 'Your Entries' :
