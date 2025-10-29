@@ -21,15 +21,23 @@ const Dashboard = () => {
     switch (currentPage) {
       case 'dashboard':
         return (
-          <div>
-            <SummaryCards />
-            <div className="mt-8">
-              <CashbookForm />
+          <div className="space-y-8">
+            {/* Fuel Support Section */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Fuel Support</h2>
+              <SummaryCards />
+              <div className="mt-8">
+                <CashbookForm />
+              </div>
+            </div>
+            
+            {/* Your Entries Section */}
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Entries</h2>
+              <CashbookTable />
             </div>
           </div>
         );
-      case 'entries':
-        return <CashbookTable />;
       case 'settings':
         return <Settings />;
       default:
@@ -51,13 +59,7 @@ const Dashboard = () => {
             onClick={() => { setCurrentPage('dashboard'); setSidebarOpen(false); }}
             className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${currentPage === 'dashboard' ? 'bg-green-100 text-green-700' : 'text-gray-700'}`}
           >
-            Dashboard
-          </button>
-          <button
-            onClick={() => { setCurrentPage('entries'); setSidebarOpen(false); }}
-            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${currentPage === 'entries' ? 'bg-green-100 text-green-700' : 'text-gray-700'}`}
-          >
-            Your Entries
+            Fuel Support Dashboard
           </button>
           <button
             onClick={() => { setCurrentPage('settings'); setSidebarOpen(false); }}
@@ -94,8 +96,7 @@ const Dashboard = () => {
             <div className="text-center mb-4">
               <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mx-auto mb-3" onError={(e) => e.target.style.display = 'none'} />
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                {currentPage === 'dashboard' ? 'Anloga Ambulance Cashbook System' :
-                 currentPage === 'entries' ? 'Your Entries' :
+                {currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                  'Settings'}
               </h1>
               <p className="text-gray-600 text-sm sm:text-base mt-1">Timely Care Saves Lives</p>
@@ -118,8 +119,7 @@ const Dashboard = () => {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent flex items-center justify-center">
                 <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mr-4" onError={(e) => e.target.style.display = 'none'} />
                 <span>
-                  {currentPage === 'dashboard' ? 'Anloga Ambulance Cashbook System' :
-                   currentPage === 'entries' ? 'Your Entries' :
+                  {currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                    'Settings'}
                 </span>
               </h1>
