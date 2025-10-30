@@ -5,6 +5,17 @@ import ExcelJS from 'exceljs';
 import Swal from 'sweetalert2';
 import { onAuthStateChanged } from 'firebase/auth';
 
+// Add custom CSS for hiding scrollbars
+const scrollbarHideStyle = `
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
+
 const GoCardTable = () => {
   const [entries, setEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);
@@ -285,6 +296,9 @@ const GoCardTable = () => {
 
   return (
     <div className="bg-white bg-opacity-80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-white border-opacity-20">
+      {/* Inject custom CSS for hiding scrollbars */}
+      <style dangerouslySetInnerHTML={{ __html: scrollbarHideStyle }} />
+      
       {/* Search and Filter Controls - Fixed Header */}
       <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sticky top-0 bg-white z-20 pb-4 border-b border-gray-200">
         <div className="flex-1 min-w-0">
@@ -491,7 +505,7 @@ const GoCardTable = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block">
-            <div className="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-200"
+            <div className="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-200 scrollbar-hide"
               ref={desktopTableRef}
               style={{
                 WebkitOverflowScrolling: 'touch'
