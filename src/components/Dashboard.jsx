@@ -21,34 +21,34 @@ const Dashboard = () => {
     switch (currentPage) {
       case 'dashboard':
         return (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome to Fuel Support Dashboard</h2>
-              <p className="text-gray-600">Choose a section to manage your fuel support operations</p>
+          <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 space-y-6 sm:space-y-8">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Welcome to Fuel Support Dashboard</h2>
+              <p className="text-gray-600 text-sm sm:text-base px-4">Choose a section to manage your fuel support operations</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-sm sm:max-w-2xl">
               {/* Fuel Support Button */}
               <button
                 onClick={() => setCurrentPage('fuel-support')}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 <div className="text-center">
-                  <div className="text-4xl mb-4">⛽</div>
-                  <h3 className="text-xl font-bold mb-2">Fuel Support</h3>
-                  <p className="text-sm opacity-90">View summaries and add new entries</p>
+                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">⛽</div>
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Fuel Support</h3>
+                  <p className="text-xs sm:text-sm opacity-90">View summaries and add new entries</p>
                 </div>
               </button>
               
               {/* Your Entries Button */}
               <button
                 onClick={() => setCurrentPage('entries')}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 <div className="text-center">
-                  <div className="text-4xl mb-4">📊</div>
-                  <h3 className="text-xl font-bold mb-2">Your Entries</h3>
-                  <p className="text-sm opacity-90">View and manage all entries</p>
+                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📊</div>
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Your Entries</h3>
+                  <p className="text-xs sm:text-sm opacity-90">View and manage all entries</p>
                 </div>
               </button>
             </div>
@@ -101,7 +101,7 @@ const Dashboard = () => {
   return (
     <div className="h-screen bg-gradient-to-br from-green-100 via-emerald-50 to-teal-100 flex overflow-hidden">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
         <div className="flex items-center justify-center h-16 bg-gradient-to-r from-green-600 to-emerald-600">
           <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10" onError={(e) => e.target.style.display = 'none'} />
           <h1 className="text-white text-lg font-bold ml-2">Anloga Ambulance</h1>
@@ -129,10 +129,10 @@ const Dashboard = () => {
 
       {/* Main content */}
       <div className="flex-1 lg:ml-0 h-full overflow-y-auto">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 h-full">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 lg:py-6 xl:py-8 h-full">
           {/* Mobile Header */}
-          <div className="block lg:hidden mb-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="block lg:hidden mb-4 sm:mb-6">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -146,15 +146,15 @@ const Dashboard = () => {
             </div>
 
             {/* Mobile Layout: Logo above title */}
-            <div className="text-center mb-4">
-              <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mx-auto mb-3" onError={(e) => e.target.style.display = 'none'} />
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            <div className="text-center mb-3 sm:mb-4">
+              <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10 sm:h-12 mx-auto mb-2 sm:mb-3" onError={(e) => e.target.style.display = 'none'} />
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                  currentPage === 'fuel-support' ? 'Fuel Support' :
                  currentPage === 'entries' ? 'Your Entries' :
                  'Settings'}
               </h1>
-              <p className="text-gray-600 text-sm sm:text-base mt-1">Timely Care Saves Lives</p>
+              <p className="text-gray-600 text-xs sm:text-sm lg:text-base mt-1">Timely Care Saves Lives</p>
             </div>
           </div>
 
@@ -186,7 +186,7 @@ const Dashboard = () => {
           </div>
 
           {/* Content */}
-          <div className="space-y-6 sm:space-y-8">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             {renderContent()}
           </div>
         </div>
