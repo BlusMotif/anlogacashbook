@@ -99,6 +99,86 @@ const Dashboard = () => {
             <CashbookTable />
           </div>
         );
+      case 'go-card-dashboard':
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 space-y-6 sm:space-y-8">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Welcome to Go Card Dashboard</h2>
+              <p className="text-gray-600 text-sm sm:text-base px-4">Choose a section to manage your Go Card operations</p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-sm sm:max-w-2xl">
+              {/* Go Card Entries Button */}
+              <button
+                onClick={() => setCurrentPage('go-card-entries')}
+                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+              >
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">
+                    <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Go Card Entries</h3>
+                  <p className="text-xs sm:text-sm opacity-90">View and manage Go Card entries</p>
+                </div>
+              </button>
+              
+              {/* Go Card Summary Button */}
+              <button
+                onClick={() => setCurrentPage('go-card-summary')}
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+              >
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">
+                    <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Go Card Summary</h3>
+                  <p className="text-xs sm:text-sm opacity-90">View summaries and add new entries</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        );
+      case 'go-card-entries':
+        return (
+          <div>
+            <div className="mb-6">
+              <button
+                onClick={() => setCurrentPage('go-card-dashboard')}
+                className="flex items-center text-purple-600 hover:text-purple-700 font-medium mb-4"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Go Card Dashboard
+              </button>
+            </div>
+            <CashbookTable />
+          </div>
+        );
+      case 'go-card-summary':
+        return (
+          <div>
+            <div className="mb-6">
+              <button
+                onClick={() => setCurrentPage('go-card-dashboard')}
+                className="flex items-center text-purple-600 hover:text-purple-700 font-medium mb-4"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Go Card Dashboard
+              </button>
+            </div>
+            <SummaryCards />
+            <div className="mt-8">
+              <CashbookForm />
+            </div>
+          </div>
+        );
       case 'settings':
         return <Settings />;
       default:
@@ -121,6 +201,12 @@ const Dashboard = () => {
             className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${currentPage === 'dashboard' ? 'bg-green-100 text-green-700' : 'text-gray-700'}`}
           >
             Fuel Support Dashboard
+          </button>
+          <button
+            onClick={() => { setCurrentPage('go-card-dashboard'); setSidebarOpen(false); }}
+            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${currentPage === 'go-card-dashboard' ? 'bg-green-100 text-green-700' : 'text-gray-700'}`}
+          >
+            Go Card Dashboard
           </button>
           <button
             onClick={() => { setCurrentPage('settings'); setSidebarOpen(false); }}
@@ -160,6 +246,9 @@ const Dashboard = () => {
                 {currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                  currentPage === 'fuel-support' ? 'Fuel Support' :
                  currentPage === 'entries' ? 'Your Entries' :
+                 currentPage === 'go-card-dashboard' ? 'Go Card Dashboard' :
+                 currentPage === 'go-card-entries' ? 'Go Card Entries' :
+                 currentPage === 'go-card-summary' ? 'Go Card Summary' :
                  'Settings'}
               </h1>
               <p className="text-gray-600 text-xs sm:text-sm lg:text-base mt-1">Timely Care Saves Lives</p>
@@ -185,6 +274,9 @@ const Dashboard = () => {
                   {currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                    currentPage === 'fuel-support' ? 'Fuel Support' :
                    currentPage === 'entries' ? 'Your Entries' :
+                   currentPage === 'go-card-dashboard' ? 'Go Card Dashboard' :
+                   currentPage === 'go-card-entries' ? 'Go Card Entries' :
+                   currentPage === 'go-card-summary' ? 'Go Card Summary' :
                    'Settings'}
                 </span>
               </h1>
