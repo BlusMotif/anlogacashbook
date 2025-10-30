@@ -43,18 +43,36 @@ const GoCardTable = () => {
   useEffect(() => {
     if (!user) return;
 
+    console.log('Loading go-card entries for user:', user.uid);
+
     const entriesRef = ref(db, 'go-card/entries');
     const unsubscribe = onValue(entriesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const userEntries = Object.keys(data).map(key => ({
-          id: key,
-          ...data[key]
-        })).filter(entry => entry.createdBy === user.uid).sort((a, b) => new Date(a.date) - new Date(b.date));
-        setEntries(userEntries);
-      } else {
+      try {
+        console.log('Database snapshot received:', snapshot.exists());
+        const data = snapshot.val();
+        console.log('Raw data from database:', data);
+
+        if (data) {
+          const userEntries = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key]
+          })).filter(entry => entry.createdBy === user.uid).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          console.log('Filtered user entries:', userEntries.length);
+          setEntries(userEntries);
+        } else {
+          console.log('No data found in database');
+          setEntries([]);
+        }
+      } catch (error) {
+        console.error('Error processing database data:', error);
         setEntries([]);
       }
+    }, (error) => {
+      console.error('Database read error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      setEntries([]);
     });
 
     return () => unsubscribe();
@@ -208,6 +226,117 @@ const GoCardTable = () => {
     setEditData({});
   };
 
+  const handleDeleteAll = async () => {
+    if (!user) return;
+
+    // Get the user's delete password from localStorage
+    const deletePasswordKey = `delete_password_${user.uid}`;
+    const storedDeletePassword = localStorage.getItem(deletePasswordKey);
+
+    if (!storedDeletePassword) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Delete Password Not Set',
+        text: 'Please set a delete password in Settings first.',
+        confirmButtonColor: '#10B981'
+      });
+      return;
+    }
+
+    // Password prompt
+    const { value: password } = await Swal.fire({
+      title: 'Enter Delete Password',
+      input: 'password',
+      inputLabel: 'Password required to delete all entries',
+      inputPlaceholder: 'Enter your delete password...',
+      inputAttributes: {
+        maxlength: 20,
+        autocapitalize: 'off',
+        autocorrect: 'off'
+      },
+      showCancelButton: true,
+      confirmButtonColor: '#10B981',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Delete All',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Password is required!';
+        }
+        if (value !== storedDeletePassword) {
+          return 'Incorrect password!';
+        }
+      }
+    });
+
+    if (password === storedDeletePassword) {
+      // Show confirmation dialog
+      const result = await Swal.fire({
+        title: 'Delete ALL Entries?',
+        text: 'This will permanently delete ALL your GOCARD entries. This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Yes, Delete Everything!',
+        cancelButtonText: 'Cancel'
+      });
+
+      if (result.isConfirmed) {
+        try {
+          // Get all user entries
+          const snapshot = await get(ref(db, 'go-card/entries'));
+          const data = snapshot.val();
+          
+          if (data) {
+            const userEntries = Object.keys(data).filter(key => data[key].createdBy === user.uid);
+            
+            if (userEntries.length === 0) {
+              Swal.fire({
+                icon: 'info',
+                title: 'No Entries Found',
+                text: 'There are no entries to delete.',
+                confirmButtonColor: '#10B981'
+              });
+              return;
+            }
+
+            // Delete all entries
+            const deletePromises = userEntries.map(entryId => 
+              remove(ref(db, `go-card/entries/${entryId}`))
+            );
+            
+            await Promise.all(deletePromises);
+
+            // Trigger balance refresh in forms
+            localStorage.setItem('go_card_balance_refresh', Date.now().toString());
+            
+            Swal.fire({
+              icon: 'success',
+              title: 'All Entries Deleted!',
+              text: `Successfully deleted ${userEntries.length} entries.`,
+              confirmButtonColor: '#10B981'
+            });
+          } else {
+            Swal.fire({
+              icon: 'info',
+              title: 'No Entries Found',
+              text: 'There are no entries to delete.',
+              confirmButtonColor: '#10B981'
+            });
+          }
+        } catch (error) {
+          console.error('Error deleting all entries:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Deleting Entries',
+            text: 'Failed to delete all entries. Please try again.',
+            confirmButtonColor: '#10B981'
+          });
+        }
+      }
+    }
+  };
+
   const handleExport = async () => {
     if (filteredEntries.length === 0) {
       Swal.fire({
@@ -346,6 +475,12 @@ const GoCardTable = () => {
             className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
             Export to Excel
+          </button>
+          <button
+            onClick={handleDeleteAll}
+            className="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Delete All
           </button>
         </div>
       </div>
