@@ -34,7 +34,11 @@ const Dashboard = () => {
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 <div className="text-center">
-                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">⛽</div>
+                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">
+                    <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Fuel Support</h3>
                   <p className="text-xs sm:text-sm opacity-90">View summaries and add new entries</p>
                 </div>
@@ -46,7 +50,11 @@ const Dashboard = () => {
                 className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 <div className="text-center">
-                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📊</div>
+                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">
+                    <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
                   <h3 className="text-lg sm:text-xl font-bold mb-2">Your Entries</h3>
                   <p className="text-xs sm:text-sm opacity-90">View and manage all entries</p>
                 </div>
