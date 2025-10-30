@@ -6,5 +6,5 @@ services:
     staticPublishPath: dist
     routes:
       - type: rewrite
-        source: "/((?!assets|favicon.ico|logo.png|vite.svg|_redirects).*)"
+        source: "/(.*)"
         destination: /index.html
