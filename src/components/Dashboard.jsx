@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../ThemeContext';
@@ -15,6 +15,23 @@ const Dashboard = () => {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('welcome');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Authentication check
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        // User is not authenticated, redirect to login
+        navigate('/', { replace: true });
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   // Load saved page from localStorage on component mount
   useEffect(() => {
@@ -28,6 +45,20 @@ const Dashboard = () => {
       console.warn('localStorage not available for page persistence');
     }
   }, []);
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-500 via-emerald-600 to-teal-500 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   // Function to set current page and save to localStorage
   const setCurrentPageAndSave = (page) => {

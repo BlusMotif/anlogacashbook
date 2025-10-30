@@ -1,21 +1,56 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const Welcome = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Authentication check
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        // User is not authenticated, redirect to login
+        navigate('/', { replace: true });
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
-    // Auto-redirect to dashboard after 3 seconds
-    const timer = setTimeout(() => {
-      navigate('/dashboard');
-    }, 3000);
+    // Auto-redirect to dashboard after 3 seconds (only if authenticated)
+    if (user) {
+      const timer = setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
 
-    return () => clearTimeout(timer);
-  }, [navigate]);
+      return () => clearTimeout(timer);
+    }
+  }, [navigate, user]);
 
   const handleContinue = () => {
     navigate('/dashboard');
   };
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-500 via-emerald-600 to-teal-500 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 via-emerald-600 to-teal-500 flex items-center justify-center p-4">
