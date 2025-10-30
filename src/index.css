@@ -2,11 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark mode support */
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    --card-bg: #ffffff;
+    --sidebar-bg: #ffffff;
+  }
+
+  .dark {
+    --bg-primary: #111827;
+    --bg-secondary: #1f2937;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --border-color: #374151;
+    --card-bg: #1f2937;
+    --sidebar-bg: #111827;
+  }
+}
+
 /* Custom Scrollbar Styles */
 .custom-scroll {
   /* Firefox */
   scrollbar-width: auto;
   scrollbar-color: #10B981 #f3f4f6;
+}
+
+/* Dark mode scrollbar */
+.dark .custom-scroll {
+  scrollbar-color: #10B981 #374151;
 }
 
 /* WebKit browsers (Chrome, Safari, Edge) */
@@ -20,10 +48,18 @@
   border-radius: 4px;
 }
 
+.dark .custom-scroll::-webkit-scrollbar-track {
+  background: #374151;
+}
+
 .custom-scroll::-webkit-scrollbar-thumb {
   background: #10B981;
   border-radius: 4px;
   border: 1px solid #f3f4f6;
+}
+
+.dark .custom-scroll::-webkit-scrollbar-thumb {
+  border: 1px solid #374151;
 }
 
 .custom-scroll::-webkit-scrollbar-thumb:hover {

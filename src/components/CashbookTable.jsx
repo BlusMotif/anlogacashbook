@@ -4,8 +4,10 @@ import { db, auth } from '../firebase';
 import ExcelJS from 'exceljs';
 import Swal from 'sweetalert2';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useTheme } from '../ThemeContext';
 
 const CashbookTable = () => {
+  const { theme } = useTheme();
   const [entries, setEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -177,7 +179,7 @@ const CashbookTable = () => {
     const data = snapshot.val();
     if (!data) return;
 
-    const userEntries = Object.keys(data).map(key => ({ id: key, ...data[key] })).filter(entry => entry.createdBy === user.uid).sort((a, b) => a.timestamp - b.timestamp);
+    const userEntries = Object.keys(data).map(key => ({ id: key, ...data[key] })).filter(entry => entry.createdBy === user.uid).sort((a, b) => new Date(a.date) - new Date(b.date));
 
     let balance = 0;
     const updates = {};
@@ -205,6 +207,8 @@ const CashbookTable = () => {
       try {
         await remove(ref(db, `cashbook/entries/${id}`));
         await recalculateBalances();
+        // Trigger balance refresh in forms
+        localStorage.setItem('cashbook_balance_refresh', Date.now().toString());
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
@@ -234,6 +238,8 @@ const CashbookTable = () => {
     try {
       await update(ref(db, `cashbook/entries/${editingId}`), editData);
       await recalculateBalances();
+      // Trigger balance refresh in forms
+      localStorage.setItem('cashbook_balance_refresh', Date.now().toString());
       setEditingId(null);
       setEditData({});
       Swal.fire({
@@ -350,16 +356,16 @@ const CashbookTable = () => {
   };
 
   return (
-    <div className="bg-white bg-opacity-80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-white border-opacity-20">
+    <div className={`${theme === 'dark' ? 'bg-gray-800 bg-opacity-80 border-gray-700' : 'bg-white bg-opacity-80 border-white border-opacity-20'} backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border`}>
       {/* Search and Filter Controls - Fixed Header */}
-      <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sticky top-0 bg-white z-20 pb-4 border-b border-gray-200">
+      <div className={`mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sticky top-0 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} z-20 pb-4 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
         <div className="flex-1 min-w-0">
           <input
             type="text"
             placeholder="Search particulars..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+            className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base`}
           />
         </div>
         <div className="sm:w-auto w-full">
@@ -368,7 +374,7 @@ const CashbookTable = () => {
             placeholder="From date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+            className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base`}
           />
         </div>
         <div className="flex gap-2 sm:w-auto w-full">
@@ -402,7 +408,7 @@ const CashbookTable = () => {
           <div className="block md:hidden">
             <div
               ref={mobileTableRef}
-              className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-gray-200 custom-scroll"
+              className={`overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} custom-scroll`}
               style={{
                 scrollbarWidth: 'auto',
                 scrollbarColor: '#10B981 #f3f4f6',
@@ -428,22 +434,22 @@ const CashbookTable = () => {
                     <th className="px-2 py-2 text-center font-semibold text-xs w-[9%] min-w-[80px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
                   {filteredEntries.map(entry => (
-                    <tr key={entry.id} className="hover:bg-gray-50 transition duration-150">
-                      <td className="px-2 py-2 text-xs text-gray-900">
+                    <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="date"
                             value={editData.date || ''}
                             onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className={`w-full px-1 py-1 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500`}
                           />
                         ) : (
                           <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
@@ -455,19 +461,19 @@ const CashbookTable = () => {
                           <span className="break-words">{entry.particulars}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
                             value={editData.receiptNo || ''}
                             onChange={(e) => setEditData({ ...editData, receiptNo: e.target.value })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className={`w-full px-1 py-1 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500`}
                           />
                         ) : (
                           entry.receiptNo
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900 text-right">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -480,7 +486,7 @@ const CashbookTable = () => {
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900 text-right">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -536,14 +542,14 @@ const CashbookTable = () => {
               </div>
 
               {filteredEntries.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className={`text-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   <div className="text-4xl mb-4">
-                    <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-16 h-16 mx-auto ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <p className="text-sm font-medium">No entries found</p>
-                  <p className="text-xs text-gray-400 mt-1">Try adjusting your search filters</p>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} mt-1`}>Try adjusting your search filters</p>
                 </div>
               )}
             </div>
@@ -551,7 +557,7 @@ const CashbookTable = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block">
-            <div className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-gray-200 custom-scroll"
+            <div className={`overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} custom-scroll`}
               ref={desktopTableRef}
               style={{
                 scrollbarWidth: 'auto',
@@ -575,10 +581,10 @@ const CashbookTable = () => {
                     <th className="px-3 py-3 text-center font-semibold text-sm w-[12%] min-w-[120px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
                   {filteredEntries.map(entry => (
-                    <tr key={entry.id} className="hover:bg-gray-50 transition duration-150">
-                      <td className="px-3 py-3 text-sm text-gray-900">
+                    <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="date"
@@ -590,7 +596,7 @@ const CashbookTable = () => {
                           <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
@@ -602,7 +608,7 @@ const CashbookTable = () => {
                           <span className="break-words">{entry.particulars}</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
@@ -614,7 +620,7 @@ const CashbookTable = () => {
                           entry.receiptNo
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900 text-right">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -627,7 +633,7 @@ const CashbookTable = () => {
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900 text-right">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -682,14 +688,14 @@ const CashbookTable = () => {
               </table>
 
               {filteredEntries.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className={`text-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   <div className="text-4xl mb-4">
-                    <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-16 h-16 mx-auto ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <p className="text-sm sm:text-base font-medium">No entries found</p>
-                  <p className="text-xs sm:text-sm text-gray-400 mt-1">Try adjusting your search filters</p>
+                  <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} mt-1`}>Try adjusting your search filters</p>
                 </div>
               )}
             </div>
@@ -697,7 +703,7 @@ const CashbookTable = () => {
 
           {/* Table Info */}
           {filteredEntries.length > 0 && (
-            <div className="mt-4 text-center text-sm text-gray-500">
+            <div className={`mt-4 text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               Showing {filteredEntries.length} entr{filteredEntries.length === 1 ? 'y' : 'ies'}
             </div>
           )}

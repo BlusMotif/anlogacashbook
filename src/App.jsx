@@ -3,16 +3,19 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
 import Dashboard from './components/Dashboard';
+import { ThemeProvider } from './ThemeContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

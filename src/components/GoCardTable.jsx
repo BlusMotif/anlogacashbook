@@ -4,6 +4,7 @@ import { db, auth } from '../firebase';
 import ExcelJS from 'exceljs';
 import Swal from 'sweetalert2';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useTheme } from '../ThemeContext';
 
 // Add custom CSS for hiding scrollbars
 const scrollbarHideStyle = `
@@ -17,6 +18,7 @@ const scrollbarHideStyle = `
 `;
 
 const GoCardTable = () => {
+  const { theme } = useTheme();
   const [entries, setEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -120,7 +122,8 @@ const GoCardTable = () => {
     const data = snapshot.val();
     if (!data) return;
 
-    const userEntries = Object.keys(data).map(key => ({ id: key, ...data[key] })).filter(entry => entry.createdBy === user.uid).sort((a, b) => a.timestamp - b.timestamp);
+    // Sort by date instead of timestamp for balance calculation
+    const userEntries = Object.keys(data).map(key => ({ id: key, ...data[key] })).filter(entry => entry.createdBy === user.uid).sort((a, b) => new Date(a.date) - new Date(b.date));
 
     let balance = 0;
     const updates = {};
@@ -148,6 +151,8 @@ const GoCardTable = () => {
       try {
         await remove(ref(db, `go-card/entries/${id}`));
         await recalculateBalances();
+        // Trigger balance refresh in forms
+        localStorage.setItem('go_card_balance_refresh', Date.now().toString());
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
@@ -177,6 +182,8 @@ const GoCardTable = () => {
     try {
       await update(ref(db, `go-card/entries/${editingId}`), editData);
       await recalculateBalances();
+      // Trigger balance refresh in forms
+      localStorage.setItem('go_card_balance_refresh', Date.now().toString());
       setEditingId(null);
       setEditData({});
       Swal.fire({
@@ -280,7 +287,7 @@ const GoCardTable = () => {
       Swal.fire({
         icon: 'success',
         title: 'Export Successful!',
-        text: 'Your Go Card entries have been exported to Excel with bold headers.',
+        text: 'Your GOCARD entries have been exported to Excel with bold headers.',
         confirmButtonColor: '#10B981'
       });
     } catch (error) {
@@ -295,19 +302,19 @@ const GoCardTable = () => {
   };
 
   return (
-    <div className="bg-white bg-opacity-80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-white border-opacity-20">
+    <div className={`${theme === 'dark' ? 'bg-gray-800 bg-opacity-80 border-gray-700' : 'bg-white bg-opacity-80 border-white border-opacity-20'} backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border`}>
       {/* Inject custom CSS for hiding scrollbars */}
       <style dangerouslySetInnerHTML={{ __html: scrollbarHideStyle }} />
       
       {/* Search and Filter Controls - Fixed Header */}
-      <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sticky top-0 bg-white z-20 pb-4 border-b border-gray-200">
+      <div className={`mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sticky top-0 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} z-20 pb-4 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
         <div className="flex-1 min-w-0">
           <input
             type="text"
             placeholder="Search merchant or attendant..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
+            className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base`}
           />
         </div>
         <div className="sm:w-auto w-full">
@@ -316,7 +323,7 @@ const GoCardTable = () => {
             placeholder="From date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
+            className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base`}
           />
         </div>
         <div className="flex gap-2 sm:w-auto w-full">
@@ -350,10 +357,17 @@ const GoCardTable = () => {
           <div className="block md:hidden">
             <div
               ref={mobileTableRef}
-              className="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-200"
+              className={`overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} custom-scroll`}
               style={{
+                scrollbarWidth: 'auto',
+                scrollbarColor: '#10B981 #f3f4f6',
                 WebkitOverflowScrolling: 'touch',
-                maxWidth: '100vw'
+                overscrollBehaviorX: 'contain',
+                overscrollBehaviorY: 'contain',
+                maxWidth: '100vw',
+                width: '100%',
+                maxHeight: '60vh',
+                overflowY: 'auto'
               }}
             >
               <div style={{ minWidth: '800px' }}>
@@ -370,10 +384,10 @@ const GoCardTable = () => {
                     <th className="px-2 py-2 text-center font-semibold text-xs w-[10%] min-w-[80px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
                   {filteredEntries.map(entry => (
-                    <tr key={entry.id} className="hover:bg-gray-50 transition duration-150">
-                      <td className="px-2 py-2 text-xs text-gray-900">
+                    <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="date"
@@ -385,43 +399,43 @@ const GoCardTable = () => {
                           <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="time"
                             value={editData.time || ''}
                             onChange={(e) => setEditData({ ...editData, time: e.target.value })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className={`w-full px-1 py-1 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500`}
                           />
                         ) : (
                           entry.time
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
                             value={editData.merchant || ''}
                             onChange={(e) => setEditData({ ...editData, merchant: e.target.value })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className={`w-full px-1 py-1 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500`}
                           />
                         ) : (
                           <span className="break-words">{entry.merchant}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
                             value={editData.attendant || ''}
                             onChange={(e) => setEditData({ ...editData, attendant: e.target.value })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className={`w-full px-1 py-1 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500`}
                           />
                         ) : (
                           entry.attendant
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900 text-right">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -434,7 +448,7 @@ const GoCardTable = () => {
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-900 text-right">
+                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -490,14 +504,14 @@ const GoCardTable = () => {
               </div>
 
               {filteredEntries.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className={`text-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   <div className="text-4xl mb-4">
-                    <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-16 h-16 mx-auto ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <p className="text-sm font-medium">No entries found</p>
-                  <p className="text-xs text-gray-400 mt-1">Try adjusting your search filters</p>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} mt-1`}>Try adjusting your search filters</p>
                 </div>
               )}
             </div>
@@ -505,10 +519,16 @@ const GoCardTable = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block">
-            <div className="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-200 scrollbar-hide"
+            <div className={`overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} custom-scroll`}
               ref={desktopTableRef}
               style={{
-                WebkitOverflowScrolling: 'touch'
+                scrollbarWidth: 'auto',
+                scrollbarColor: '#10B981 #f3f4f6',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorX: 'contain',
+                overscrollBehaviorY: 'contain',
+                maxHeight: '60vh',
+                overflowY: 'auto'
               }}
             >
               <table className="w-full min-w-[900px] table-fixed border-collapse">
@@ -524,10 +544,10 @@ const GoCardTable = () => {
                     <th className="px-3 py-3 text-center font-semibold text-sm w-[10%] min-w-[120px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
                   {filteredEntries.map(entry => (
-                    <tr key={entry.id} className="hover:bg-gray-50 transition duration-150">
-                      <td className="px-3 py-3 text-sm text-gray-900">
+                    <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="date"
@@ -539,7 +559,7 @@ const GoCardTable = () => {
                           <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="time"
@@ -551,7 +571,7 @@ const GoCardTable = () => {
                           entry.time
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
@@ -563,7 +583,7 @@ const GoCardTable = () => {
                           <span className="break-words">{entry.merchant}</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
@@ -575,7 +595,7 @@ const GoCardTable = () => {
                           entry.attendant
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900 text-right">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -588,7 +608,7 @@ const GoCardTable = () => {
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-900 text-right">
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -643,14 +663,14 @@ const GoCardTable = () => {
               </table>
 
               {filteredEntries.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className={`text-center py-12 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   <div className="text-4xl mb-4">
-                    <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-16 h-16 mx-auto ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <p className="text-sm sm:text-base font-medium">No entries found</p>
-                  <p className="text-xs sm:text-sm text-gray-400 mt-1">Try adjusting your search filters</p>
+                  <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} mt-1`}>Try adjusting your search filters</p>
                 </div>
               )}
             </div>
@@ -658,7 +678,7 @@ const GoCardTable = () => {
 
           {/* Table Info */}
           {filteredEntries.length > 0 && (
-            <div className="mt-4 text-center text-sm text-gray-500">
+            <div className={`mt-4 text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               Showing {filteredEntries.length} entr{filteredEntries.length === 1 ? 'y' : 'ies'}
             </div>
           )}

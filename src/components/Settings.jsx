@@ -3,8 +3,10 @@ import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthPro
 import { auth } from '../firebase';
 import Swal from 'sweetalert2';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useTheme } from '../ThemeContext';
 
 const Settings = () => {
+  const { theme } = useTheme();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -109,38 +111,38 @@ const Settings = () => {
   };
 
   return (
-    <div className="bg-white bg-opacity-80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white border-opacity-20 min-h-[calc(100vh-12rem)]">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Account Settings</h2>
+    <div className={`${theme === 'dark' ? 'bg-gray-800 bg-opacity-80 border-gray-700' : 'bg-white bg-opacity-80 border-white border-opacity-20'} backdrop-blur-sm p-6 rounded-2xl shadow-xl border min-h-[calc(100vh-12rem)]`}>
+      <h2 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Account Settings</h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className={`mb-4 p-3 ${theme === 'dark' ? 'bg-red-900 border-red-700 text-red-200' : 'bg-red-100 border-red-400 text-red-700'} border rounded`}>
           {error}
         </div>
       )}
 
       <div className="space-y-8">
         {/* Update Email Section */}
-        <div className="bg-gray-50 p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Update Email Address</h3>
+        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} p-6 rounded-xl`}>
+          <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Update Email Address</h3>
           <form onSubmit={handleUpdateEmail}>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">Current Password</label>
+              <label className={`block ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium mb-2`}>Current Password</label>
               <input
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                 placeholder="Enter your current password"
                 required
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">New Email Address</label>
+              <label className={`block ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium mb-2`}>New Email Address</label>
               <input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                 placeholder="Enter your new email"
                 required
               />
@@ -156,38 +158,38 @@ const Settings = () => {
         </div>
 
         {/* Update Password Section */}
-        <div className="bg-gray-50 p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Update Password</h3>
+        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} p-6 rounded-xl`}>
+          <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Update Password</h3>
           <form onSubmit={handleUpdatePassword}>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">Current Password</label>
+              <label className={`block ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium mb-2`}>Current Password</label>
               <input
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                 placeholder="Enter your current password"
                 required
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">New Password</label>
+              <label className={`block ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium mb-2`}>New Password</label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                 placeholder="Enter your new password"
                 required
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">Confirm New Password</label>
+              <label className={`block ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} font-medium mb-2`}>Confirm New Password</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                 placeholder="Confirm your new password"
                 required
               />
@@ -203,16 +205,16 @@ const Settings = () => {
         </div>
 
         {/* Account Information */}
-        <div className="bg-gray-50 p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Account Information</h3>
+        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} p-6 rounded-xl`}>
+          <h3 className={`text-sm font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Account Information</h3>
           <div className="space-y-2">
-            <p className="text-gray-600">
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
               <span className="font-medium">Current Email:</span> {user?.email || 'Loading...'}
             </p>
-            <p className="text-gray-600">
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
               <span className="font-medium">Account Created:</span> {user?.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : 'N/A'}
             </p>
-            <p className="text-gray-600">
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
               <span className="font-medium">Last Sign In:</span> {user?.metadata?.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString() : 'N/A'}
             </p>
           </div>

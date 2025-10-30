@@ -31,7 +31,7 @@ const SummaryCards = () => {
           totalPayments += entry.payment || 0;
         });
         if (userEntries.length > 0) {
-          const sortedEntries = userEntries.sort((a, b) => a.timestamp - b.timestamp);
+          const sortedEntries = userEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
           currentBalance = sortedEntries[sortedEntries.length - 1].balance;
         }
       }
