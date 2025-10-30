@@ -21,21 +21,74 @@ const Dashboard = () => {
     switch (currentPage) {
       case 'dashboard':
         return (
-          <div className="space-y-8">
-            {/* Fuel Support Section */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Fuel Support</h2>
-              <SummaryCards />
-              <div className="mt-8">
-                <CashbookForm />
-              </div>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome to Fuel Support Dashboard</h2>
+              <p className="text-gray-600">Choose a section to manage your fuel support operations</p>
             </div>
             
-            {/* Your Entries Section */}
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Entries</h2>
-              <CashbookTable />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+              {/* Fuel Support Button */}
+              <button
+                onClick={() => setCurrentPage('fuel-support')}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <div className="text-center">
+                  <div className="text-4xl mb-4">⛽</div>
+                  <h3 className="text-xl font-bold mb-2">Fuel Support</h3>
+                  <p className="text-sm opacity-90">View summaries and add new entries</p>
+                </div>
+              </button>
+              
+              {/* Your Entries Button */}
+              <button
+                onClick={() => setCurrentPage('entries')}
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <div className="text-center">
+                  <div className="text-4xl mb-4">📊</div>
+                  <h3 className="text-xl font-bold mb-2">Your Entries</h3>
+                  <p className="text-sm opacity-90">View and manage all entries</p>
+                </div>
+              </button>
             </div>
+          </div>
+        );
+      case 'fuel-support':
+        return (
+          <div>
+            <div className="mb-6">
+              <button
+                onClick={() => setCurrentPage('dashboard')}
+                className="flex items-center text-green-600 hover:text-green-700 font-medium mb-4"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </button>
+            </div>
+            <SummaryCards />
+            <div className="mt-8">
+              <CashbookForm />
+            </div>
+          </div>
+        );
+      case 'entries':
+        return (
+          <div>
+            <div className="mb-6">
+              <button
+                onClick={() => setCurrentPage('dashboard')}
+                className="flex items-center text-green-600 hover:text-green-700 font-medium mb-4"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </button>
+            </div>
+            <CashbookTable />
           </div>
         );
       case 'settings':
@@ -97,6 +150,8 @@ const Dashboard = () => {
               <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mx-auto mb-3" onError={(e) => e.target.style.display = 'none'} />
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
+                 currentPage === 'fuel-support' ? 'Fuel Support' :
+                 currentPage === 'entries' ? 'Your Entries' :
                  'Settings'}
               </h1>
               <p className="text-gray-600 text-sm sm:text-base mt-1">Timely Care Saves Lives</p>
@@ -120,6 +175,8 @@ const Dashboard = () => {
                 <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mr-4" onError={(e) => e.target.style.display = 'none'} />
                 <span>
                   {currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
+                   currentPage === 'fuel-support' ? 'Fuel Support' :
+                   currentPage === 'entries' ? 'Your Entries' :
                    'Settings'}
                 </span>
               </h1>
