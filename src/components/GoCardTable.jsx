@@ -58,110 +58,42 @@ const GoCardTable = () => {
     setFilteredEntries(filtered);
   }, [entries, search, dateFrom]);
 
-  // Scroll connection effect
+  // Simplified scroll handling - removed complex touch/wheel logic
   useEffect(() => {
-    const handleTableWheel = (event, tableElement) => {
+    // Simple scroll behavior - let browser handle natural scrolling
+    const handleTableScroll = (event, tableElement) => {
       if (!tableElement) return;
 
       const { scrollTop, scrollHeight, clientHeight } = tableElement;
       const deltaY = event.deltaY;
 
-      // If scrolling up and already at top, scroll page instead
-      if (deltaY < 0 && scrollTop <= 0) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, deltaY);
-        return;
-      }
-
-      // If scrolling down and already at bottom, scroll page instead
-      if (deltaY > 0 && scrollTop + clientHeight >= scrollHeight) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, deltaY);
+      // Only prevent default if we're at boundaries and trying to scroll beyond
+      if ((deltaY < 0 && scrollTop <= 0) || (deltaY > 0 && scrollTop + clientHeight >= scrollHeight)) {
+        // Let parent handle the scroll naturally
         return;
       }
     };
 
-    const handleTableTouch = (event, tableElement, direction) => {
-      if (!tableElement) return;
-
-      const { scrollTop, scrollHeight, clientHeight } = tableElement;
-
-      // If trying to scroll up and already at top, scroll page instead
-      if (direction === 'up' && scrollTop <= 0) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, -100);
-        return;
-      }
-
-      // If trying to scroll down and already at bottom, scroll page instead
-      if (direction === 'down' && scrollTop + clientHeight >= scrollHeight) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, 100);
-        return;
-      }
-    };
-
-    // Touch tracking variables
-    let touchStartY = 0;
-    let lastTouchY = 0;
-
-    const handleTouchStart = (event) => {
-      touchStartY = event.touches[0].clientY;
-      lastTouchY = touchStartY;
-    };
-
-    const handleTouchMove = (event) => {
-      const currentTouchY = event.touches[0].clientY;
-      const deltaY = lastTouchY - currentTouchY;
-      const direction = deltaY > 0 ? 'down' : 'up';
-
-      // Check which table this touch is in
-      const isInMobileTable = mobileTableRef.current && mobileTableRef.current.contains(event.target);
-      const isInDesktopTable = desktopTableRef.current && desktopTableRef.current.contains(event.target);
-
-      if (isInMobileTable) {
-        handleTableTouch(event, mobileTableRef.current, direction);
-      } else if (isInDesktopTable) {
-        handleTableTouch(event, desktopTableRef.current, direction);
-      }
-
-      lastTouchY = currentTouchY;
-    };
-
-    // Add event listeners to table containers when they exist
     const addListeners = () => {
       if (mobileTableRef.current) {
-        mobileTableRef.current.addEventListener('wheel', (e) => handleTableWheel(e, mobileTableRef.current), { passive: false });
-        mobileTableRef.current.addEventListener('touchstart', handleTouchStart, { passive: true });
-        mobileTableRef.current.addEventListener('touchmove', handleTouchMove, { passive: false });
+        mobileTableRef.current.addEventListener('wheel', (e) => handleTableScroll(e, mobileTableRef.current), { passive: true });
       }
 
       if (desktopTableRef.current) {
-        desktopTableRef.current.addEventListener('wheel', (e) => handleTableWheel(e, desktopTableRef.current), { passive: false });
-        desktopTableRef.current.addEventListener('touchstart', handleTouchStart, { passive: true });
-        desktopTableRef.current.addEventListener('touchmove', handleTouchMove, { passive: false });
+        desktopTableRef.current.addEventListener('wheel', (e) => handleTableScroll(e, desktopTableRef.current), { passive: true });
       }
     };
 
     const removeListeners = () => {
       if (mobileTableRef.current) {
-        mobileTableRef.current.removeEventListener('wheel', (e) => handleTableWheel(e, mobileTableRef.current));
-        mobileTableRef.current.removeEventListener('touchstart', handleTouchStart);
-        mobileTableRef.current.removeEventListener('touchmove', handleTouchMove);
+        mobileTableRef.current.removeEventListener('wheel', (e) => handleTableScroll(e, mobileTableRef.current));
       }
 
       if (desktopTableRef.current) {
-        desktopTableRef.current.removeEventListener('wheel', (e) => handleTableWheel(e, desktopTableRef.current));
-        desktopTableRef.current.removeEventListener('touchstart', handleTouchStart);
-        desktopTableRef.current.removeEventListener('touchmove', handleTouchMove);
+        desktopTableRef.current.removeEventListener('wheel', (e) => handleTableScroll(e, desktopTableRef.current));
       }
     };
 
-    // Add listeners after a short delay to ensure refs are set
     const timeoutId = setTimeout(addListeners, 100);
 
     return () => {
@@ -404,20 +336,13 @@ const GoCardTable = () => {
           <div className="block md:hidden">
             <div
               ref={mobileTableRef}
-              className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-gray-200 custom-scroll"
+              className="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-200"
               style={{
-                scrollbarWidth: 'auto',
-                scrollbarColor: '#10B981 #f3f4f6',
                 WebkitOverflowScrolling: 'touch',
-                overscrollBehaviorX: 'contain',
-                overscrollBehaviorY: 'contain',
-                maxWidth: '100vw',
-                width: '100%',
-                maxHeight: '70vh',
-                overflowY: 'auto'
+                maxWidth: '100vw'
               }}
             >
-              <div style={{ minWidth: '800px', width: '800px', maxWidth: '800px' }}>
+              <div style={{ minWidth: '800px' }}>
                 <table className="w-full table-fixed border-collapse">
                 <thead className="bg-gradient-to-r from-green-500 to-emerald-500 text-white sticky top-0 z-10">
                   <tr>
@@ -566,16 +491,10 @@ const GoCardTable = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block">
-            <div className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-gray-200 custom-scroll"
+            <div className="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-200"
               ref={desktopTableRef}
               style={{
-                scrollbarWidth: 'auto',
-                scrollbarColor: '#10B981 #f3f4f6',
-                WebkitOverflowScrolling: 'touch',
-                overscrollBehaviorX: 'contain',
-                overscrollBehaviorY: 'contain',
-                maxHeight: '70vh',
-                overflowY: 'auto'
+                WebkitOverflowScrolling: 'touch'
               }}
             >
               <table className="w-full min-w-[900px] table-fixed border-collapse">
