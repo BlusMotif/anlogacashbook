@@ -489,7 +489,7 @@ const CashbookTable = () => {
                 width: '100%',
                 maxHeight: '70vh',
                 overflowY: 'auto',
-                touchAction: 'pan-y'
+                touchAction: 'pan-x pan-y'
               }}
             >
               <div style={{ minWidth: '750px', width: '750px', maxWidth: '750px' }}>
