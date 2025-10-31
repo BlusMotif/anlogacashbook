@@ -643,7 +643,7 @@ const CashbookTable = () => {
                 overscrollBehavior: 'contain',
                 maxHeight: '70vh',
                 overflowY: 'auto',
-                touchAction: 'pan-y'
+                touchAction: 'pan-x pan-y'
               }}
             >
               <table className="w-full min-w-[900px] table-fixed border-collapse">

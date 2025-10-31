@@ -502,7 +502,7 @@ const GoCardTable = () => {
                 width: '100%',
                 maxHeight: '60vh',
                 overflowY: 'auto',
-                touchAction: 'pan-y'
+                touchAction: 'pan-x pan-y'
               }}
             >
               <div style={{ minWidth: '800px' }}>
