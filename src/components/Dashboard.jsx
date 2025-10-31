@@ -350,7 +350,7 @@ const Dashboard = () => {
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 lg:py-6 xl:py-8 h-full">
           {/* Mobile Header */}
           <div className="block lg:hidden mb-4 sm:mb-6">
-            {/* Top Row: Hamburger + Theme Toggle */}
+            {/* Top Row: Hamburger + Logo + Theme Toggle */}
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -361,6 +361,11 @@ const Dashboard = () => {
                 </svg>
               </button>
 
+              <div className="flex flex-col items-center">
+                <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10 sm:h-12" onError={(e) => e.target.style.display = 'none'} />
+                <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-xs sm:text-sm mt-1`}>Timely Care Saves Lives</p>
+              </div>
+
               <button
                 onClick={toggleTheme}
                 className={`p-2 rounded-md ${theme === 'dark' ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-green-500`}
@@ -378,9 +383,8 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Centered Logo and Title */}
-            <div className="text-center mb-3 sm:mb-4">
-              <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10 sm:h-12 mx-auto mb-2 sm:mb-3" onError={(e) => e.target.style.display = 'none'} />
+            {/* Page Title */}
+            <div className="text-center">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {currentPage === 'welcome' ? 'Welcome' :
                  currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
@@ -391,26 +395,24 @@ const Dashboard = () => {
                  currentPage === 'go-card-entries' ? 'GOCARD Entries' :
                  'Settings'}
               </h1>
-              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-xs sm:text-sm lg:text-base mt-1`}>Timely Care Saves Lives</p>
             </div>
           </div>
 
           {/* Desktop Header */}
           <div className="hidden lg:flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className={`p-2 rounded-md ${theme === 'dark' ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-green-500`}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-            <div className="text-center flex-1">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent flex items-center justify-center">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`p-2 rounded-md ${theme === 'dark' ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-green-500`}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <div className="flex flex-col items-center flex-1">
+              <div className="flex items-center justify-center">
                 <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mr-4" onError={(e) => e.target.style.display = 'none'} />
-                <span>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                   {currentPage === 'welcome' ? 'Welcome' :
                    currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                    currentPage === 'fuel-support' ? 'Fuel Support' :
@@ -419,27 +421,26 @@ const Dashboard = () => {
                    currentPage === 'go-card-form' ? 'GOCARD Form' :
                    currentPage === 'go-card-entries' ? 'GOCARD Entries' :
                    'Settings'}
-                </span>
-              </h1>
-              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-2`}>Timely Care Saves Lives</p>
+                </h1>
+              </div>
+              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm mt-2`}>Timely Care Saves Lives</p>
             </div>
-            <div className="flex items-center">
-              <button
-                onClick={toggleTheme}
-                className={`p-2 rounded-md ${theme === 'dark' ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-green-500`}
-                title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              >
-                {theme === 'light' ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                )}
-              </button>
-            </div>
+
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-md ${theme === 'dark' ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'} focus:outline-none focus:ring-2 focus:ring-green-500`}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              )}
+            </button>
           </div>
 
           {/* Content */}

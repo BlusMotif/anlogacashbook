@@ -236,7 +236,7 @@ const Settings = () => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className={`w-full px-4 py-3 pr-12 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-                  placeholder="Enter your current password"
+                  placeholder="Enter your login password"
                   autoComplete="current-password"
                   required
                 />
@@ -291,7 +291,7 @@ const Settings = () => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className={`w-full px-4 py-3 pr-12 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-                  placeholder="Enter your current password"
+                  placeholder="Enter your login password"
                   autoComplete="current-password"
                   required
                 />
@@ -424,7 +424,7 @@ const Settings = () => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className={`w-full px-4 py-3 pr-12 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-                  placeholder="Enter your current password"
+                  placeholder="Enter your login password"
                   autoComplete="current-password"
                   required
                 />
@@ -509,7 +509,7 @@ const Settings = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 rounded-lg font-semibold hover:from-red-600 hover:to-pink-600 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 transition duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Setting...' : 'Set Delete Password'}
             </button>

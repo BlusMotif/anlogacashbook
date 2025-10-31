@@ -78,7 +78,7 @@ const CashbookTable = () => {
     setFilteredEntries(filtered);
   }, [entries, search, dateFrom]);
 
-  // Scroll connection effect
+  // Simplified scroll handling for better mobile experience
   useEffect(() => {
     const handleTableWheel = (event, tableElement) => {
       if (!tableElement) return;
@@ -86,98 +86,34 @@ const CashbookTable = () => {
       const { scrollTop, scrollHeight, clientHeight } = tableElement;
       const deltaY = event.deltaY;
 
-      // If scrolling up and already at top, scroll page instead
-      if (deltaY < 0 && scrollTop <= 0) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, deltaY);
+      // Only prevent default if we're at boundaries and trying to scroll beyond
+      if ((deltaY < 0 && scrollTop <= 0) || (deltaY > 0 && scrollTop + clientHeight >= scrollHeight)) {
+        // Allow natural page scrolling when table is at boundary
         return;
       }
 
-      // If scrolling down and already at bottom, scroll page instead
-      if (deltaY > 0 && scrollTop + clientHeight >= scrollHeight) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, deltaY);
-        return;
-      }
-    };
-
-    const handleTableTouch = (event, tableElement, direction) => {
-      if (!tableElement) return;
-
-      const { scrollTop, scrollHeight, clientHeight } = tableElement;
-
-      // If trying to scroll up and already at top, scroll page instead
-      if (direction === 'up' && scrollTop <= 0) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, -100);
-        return;
-      }
-
-      // If trying to scroll down and already at bottom, scroll page instead
-      if (direction === 'down' && scrollTop + clientHeight >= scrollHeight) {
-        event.preventDefault();
-        event.stopPropagation();
-        window.scrollBy(0, 100);
-        return;
-      }
-    };
-
-    // Touch tracking variables
-    let touchStartY = 0;
-    let lastTouchY = 0;
-
-    const handleTouchStart = (event) => {
-      touchStartY = event.touches[0].clientY;
-      lastTouchY = touchStartY;
-    };
-
-    const handleTouchMove = (event) => {
-      const currentTouchY = event.touches[0].clientY;
-      const deltaY = lastTouchY - currentTouchY;
-      const direction = deltaY > 0 ? 'down' : 'up';
-
-      // Check which table this touch is in
-      const isInMobileTable = mobileTableRef.current && mobileTableRef.current.contains(event.target);
-      const isInDesktopTable = desktopTableRef.current && desktopTableRef.current.contains(event.target);
-
-      if (isInMobileTable) {
-        handleTableTouch(event, mobileTableRef.current, direction);
-      } else if (isInDesktopTable) {
-        handleTableTouch(event, desktopTableRef.current, direction);
-      }
-
-      lastTouchY = currentTouchY;
+      // Allow normal table scrolling
+      event.stopPropagation();
     };
 
     // Add event listeners to table containers when they exist
     const addListeners = () => {
       if (mobileTableRef.current) {
-        mobileTableRef.current.addEventListener('wheel', (e) => handleTableWheel(e, mobileTableRef.current), { passive: false });
-        mobileTableRef.current.addEventListener('touchstart', handleTouchStart, { passive: true });
-        mobileTableRef.current.addEventListener('touchmove', handleTouchMove, { passive: false });
+        mobileTableRef.current.addEventListener('wheel', (e) => handleTableWheel(e, mobileTableRef.current), { passive: true });
       }
 
       if (desktopTableRef.current) {
-        desktopTableRef.current.addEventListener('wheel', (e) => handleTableWheel(e, desktopTableRef.current), { passive: false });
-        desktopTableRef.current.addEventListener('touchstart', handleTouchStart, { passive: true });
-        desktopTableRef.current.addEventListener('touchmove', handleTouchMove, { passive: false });
+        desktopTableRef.current.addEventListener('wheel', (e) => handleTableWheel(e, desktopTableRef.current), { passive: true });
       }
     };
 
     const removeListeners = () => {
       if (mobileTableRef.current) {
         mobileTableRef.current.removeEventListener('wheel', (e) => handleTableWheel(e, mobileTableRef.current));
-        mobileTableRef.current.removeEventListener('touchstart', handleTouchStart);
-        mobileTableRef.current.removeEventListener('touchmove', handleTouchMove);
       }
 
       if (desktopTableRef.current) {
         desktopTableRef.current.removeEventListener('wheel', (e) => handleTableWheel(e, desktopTableRef.current));
-        desktopTableRef.current.removeEventListener('touchstart', handleTouchStart);
-        desktopTableRef.current.removeEventListener('touchmove', handleTouchMove);
       }
     };
 
@@ -545,34 +481,34 @@ const CashbookTable = () => {
               ref={mobileTableRef}
               className={`overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} custom-scroll`}
               style={{
-                scrollbarWidth: 'auto',
+                scrollbarWidth: 'thin',
                 scrollbarColor: '#10B981 #f3f4f6',
                 WebkitOverflowScrolling: 'touch',
-                overscrollBehaviorX: 'contain',
-                overscrollBehaviorY: 'contain',
+                overscrollBehavior: 'contain',
                 maxWidth: '100vw',
                 width: '100%',
                 maxHeight: '70vh',
-                overflowY: 'auto'
+                overflowY: 'auto',
+                touchAction: 'pan-y'
               }}
             >
               <div style={{ minWidth: '750px', width: '750px', maxWidth: '750px' }}>
                 <table className="w-full table-fixed border-collapse">
                 <thead className="bg-gradient-to-r from-green-500 to-emerald-500 text-white sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 py-2 text-left font-semibold text-xs w-[12%] min-w-[80px]">Date</th>
-                    <th className="px-2 py-2 text-left font-semibold text-xs w-[28%] min-w-[120px]">Particulars</th>
-                    <th className="px-2 py-2 text-left font-semibold text-xs w-[15%] min-w-[100px]">Receipt No</th>
-                    <th className="px-2 py-2 text-left font-semibold text-xs w-[12%] min-w-[80px]">Receipt (₵)</th>
-                    <th className="px-2 py-2 text-left font-semibold text-xs w-[12%] min-w-[80px]">Payment (₵)</th>
-                    <th className="px-2 py-2 text-left font-semibold text-xs w-[12%] min-w-[80px]">Balance (₵)</th>
-                    <th className="px-2 py-2 text-center font-semibold text-xs w-[9%] min-w-[80px]">Actions</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[12%] min-w-[80px]">Date</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[28%] min-w-[120px]">Particulars</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[15%] min-w-[100px]">Receipt No</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[12%] min-w-[80px]">Receipt (₵)</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[12%] min-w-[80px]">Payment (₵)</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[12%] min-w-[80px]">Balance (₵)</th>
+                    <th className="px-1 py-1 text-center font-semibold text-xs w-[9%] min-w-[80px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
                   {filteredEntries.map(entry => (
                     <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
-                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                      <td className={`px-1 py-1 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="date"
@@ -584,7 +520,7 @@ const CashbookTable = () => {
                           <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
                         )}
                       </td>
-                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                      <td className={`px-1 py-1 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
@@ -596,7 +532,7 @@ const CashbookTable = () => {
                           <span className="break-words">{entry.particulars}</span>
                         )}
                       </td>
-                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                      <td className={`px-1 py-1 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
                           <input
                             type="text"
@@ -608,7 +544,7 @@ const CashbookTable = () => {
                           entry.receiptNo
                         )}
                       </td>
-                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
+                      <td className={`px-1 py-1 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -621,7 +557,7 @@ const CashbookTable = () => {
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
                         )}
                       </td>
-                      <td className={`px-2 py-2 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
+                      <td className={`px-1 py-1 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} text-right`}>
                         {editingId === entry.id ? (
                           <input
                             type="number"
@@ -634,10 +570,10 @@ const CashbookTable = () => {
                           <span className="font-medium text-red-600">₵ {entry.payment.toFixed(2)}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-xs text-right">
+                      <td className="px-1 py-1 text-xs text-right">
                         <span className="font-bold text-green-600">₵ {entry.balance.toFixed(2)}</span>
                       </td>
-                      <td className="px-2 py-2 text-center">
+                      <td className="px-1 py-1 text-center">
                         {editingId === entry.id ? (
                           <div className="flex flex-col gap-1 justify-center">
                             <button
@@ -654,18 +590,24 @@ const CashbookTable = () => {
                             </button>
                           </div>
                         ) : (
-                          <div className="flex flex-col gap-1 justify-center">
+                          <div className="flex flex-row gap-1 items-center justify-center min-h-[40px]">
                             <button
                               onClick={() => handleEdit(entry)}
-                              className="bg-green-500 hover:bg-green-600 text-white px-1 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-500"
+                              className={`${theme === 'dark' ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-700'} p-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-500 flex items-center justify-center`}
+                              title="Edit"
                             >
-                              Edit
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
                             </button>
                             <button
                               onClick={() => handleDelete(entry.id)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-1 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-red-500"
+                              className={`${theme === 'dark' ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'} p-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-red-500 flex items-center justify-center`}
+                              title="Delete"
                             >
-                              Delete
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
                             </button>
                           </div>
                         )}
@@ -695,13 +637,13 @@ const CashbookTable = () => {
             <div className={`overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'} custom-scroll`}
               ref={desktopTableRef}
               style={{
-                scrollbarWidth: 'auto',
+                scrollbarWidth: 'thin',
                 scrollbarColor: '#10B981 #f3f4f6',
                 WebkitOverflowScrolling: 'touch',
-                overscrollBehaviorX: 'contain',
-                overscrollBehaviorY: 'contain',
+                overscrollBehavior: 'contain',
                 maxHeight: '70vh',
-                overflowY: 'auto'
+                overflowY: 'auto',
+                touchAction: 'pan-y'
               }}
             >
               <table className="w-full min-w-[900px] table-fixed border-collapse">
