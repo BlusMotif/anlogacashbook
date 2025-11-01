@@ -601,7 +601,7 @@ const GoCardTable = () => {
                       </td>
                       <td className="px-1 py-1 text-center">
                         {editingId === entry.id ? (
-                          <div className="flex flex-col gap-1 justify-center">
+                          <div className="flex flex-row gap-1 justify-center">
                             <button
                               onClick={handleSaveEdit}
                               className="bg-green-500 hover:bg-green-600 text-white px-1 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-500"
@@ -616,7 +616,7 @@ const GoCardTable = () => {
                             </button>
                           </div>
                         ) : (
-                          <div className="flex flex-col gap-1 justify-center">
+                          <div className="flex flex-row gap-1 justify-center">
                             <button
                               onClick={() => handleEdit(entry)}
                               className="bg-green-500 hover:bg-green-600 text-white px-1 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-500"
