@@ -6,11 +6,8 @@ services:
     staticPublishPath: dist
     routes:
       - type: rewrite
-        source: "/(.*)"
+        source: "/((?!assets|favicon.ico|logo.png|vite.svg).*)"
         destination: /index.html
-        headers:
-          - key: Cache-Control
-            value: no-cache
       - type: rewrite
         source: "/assets/(.*)"
         destination: /assets/$1
