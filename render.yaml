@@ -4,19 +4,40 @@ services:
     runtime: static
     buildCommand: npm run build
     staticPublishPath: dist
+    headers:
+      - source: "/**"
+        headers:
+          - key: X-Frame-Options
+            value: DENY
+          - key: X-Content-Type-Options
+            value: nosniff
+          - key: Referrer-Policy
+            value: strict-origin-when-cross-origin
     routes:
       - type: rewrite
-        source: "/((?!assets|favicon.ico|logo.png|vite.svg).*)"
+        source: "/((?!assets|_redirects|favicon.ico|logo.png|vite.svg).*)"
         destination: /index.html
       - type: rewrite
         source: "/assets/(.*)"
         destination: /assets/$1
+        headers:
+          - key: Cache-Control
+            value: public, max-age=31536000, immutable
       - type: rewrite
         source: "/favicon.ico"
         destination: /favicon.ico
+        headers:
+          - key: Cache-Control
+            value: public, max-age=86400
       - type: rewrite
         source: "/logo.png"
         destination: /logo.png
+        headers:
+          - key: Cache-Control
+            value: public, max-age=86400
       - type: rewrite
         source: "/vite.svg"
         destination: /vite.svg
+        headers:
+          - key: Cache-Control
+            value: public, max-age=86400

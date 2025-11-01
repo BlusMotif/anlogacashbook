@@ -1,1 +1,7 @@
+# Redirect all routes to index.html for SPA routing
 /*    /index.html   200
+
+# Specific redirects for common SPA routes (fallback)
+/dashboard    /index.html   200
+/welcome      /index.html   200
+/login        /index.html   200
