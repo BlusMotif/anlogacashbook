@@ -492,7 +492,7 @@ const CashbookTable = () => {
                 touchAction: 'pan-x pan-y'
               }}
             >
-              <div style={{ minWidth: '750px', width: '750px', maxWidth: '750px' }}>
+              <div style={{ minWidth: '800px', width: '800px', maxWidth: '800px' }}>
                 <table className="w-full table-fixed border-collapse">
                 <thead className="bg-gradient-to-r from-green-500 to-emerald-500 text-white sticky top-0 z-10">
                   <tr>
@@ -501,8 +501,8 @@ const CashbookTable = () => {
                     <th className="px-1 py-1 text-left font-semibold text-xs w-[15%] min-w-[100px]">Receipt No</th>
                     <th className="px-1 py-1 text-left font-semibold text-xs w-[12%] min-w-[80px]">Receipt (₵)</th>
                     <th className="px-1 py-1 text-left font-semibold text-xs w-[12%] min-w-[80px]">Payment (₵)</th>
-                    <th className="px-1 py-1 text-left font-semibold text-xs w-[12%] min-w-[80px]">Balance (₵)</th>
-                    <th className="px-1 py-1 text-center font-semibold text-xs w-[9%] min-w-[80px]">Actions</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[10%] min-w-[80px]">Balance (₵)</th>
+                    <th className="px-1 py-1 text-center font-semibold text-xs w-[14%] min-w-[100px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>

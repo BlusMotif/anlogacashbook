@@ -515,8 +515,8 @@ const GoCardTable = () => {
                     <th className="px-1 py-1 text-left font-semibold text-xs w-[20%] min-w-[100px]">Attendant</th>
                     <th className="px-1 py-1 text-left font-semibold text-xs w-[11%] min-w-[70px]">Receipt (₵)</th>
                     <th className="px-1 py-1 text-left font-semibold text-xs w-[11%] min-w-[70px]">Payment (₵)</th>
-                    <th className="px-1 py-1 text-left font-semibold text-xs w-[11%] min-w-[70px]">Balance (₵)</th>
-                    <th className="px-1 py-1 text-center font-semibold text-xs w-[10%] min-w-[80px]">Actions</th>
+                    <th className="px-1 py-1 text-left font-semibold text-xs w-[9%] min-w-[70px]">Balance (₵)</th>
+                    <th className="px-1 py-1 text-center font-semibold text-xs w-[14%] min-w-[100px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
