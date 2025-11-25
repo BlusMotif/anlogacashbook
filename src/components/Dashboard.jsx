@@ -9,6 +9,29 @@ import CashbookTable from './CashbookTable';
 import GoCardForm from './GoCardForm';
 import GoCardTable from './GoCardTable';
 import Settings from './Settings';
+import StandbyForm from './StandbyForm';
+import StandbyTable from './StandbyTable';
+
+const StandbyDashboard = () => {
+  const [editingEntry, setEditingEntry] = useState(null);
+
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      <StandbyForm editingEntry={editingEntry} onCancelEdit={handleCancelEdit} />
+      <StandbyTable onEdit={handleEdit} />
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -18,11 +41,57 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Inactivity timeout - 10 minutes
+  useEffect(() => {
+    let timeoutId;
+    const TIMEOUT_DURATION = 600000; // 10 minutes in milliseconds
+
+    const resetTimeout = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      timeoutId = setTimeout(() => {
+        if (user) {
+          // Clear saved page state
+          try {
+            localStorage.removeItem('currentPage');
+          } catch (error) {
+            console.warn('Could not clear localStorage');
+          }
+          // Sign out user
+          signOut(auth).then(() => {
+            navigate('/', { replace: true });
+          });
+        }
+      }, TIMEOUT_DURATION);
+    };
+
+    // Events that indicate user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    // Add event listeners
+    events.forEach(event => {
+      document.addEventListener(event, resetTimeout);
+    });
+
+    // Initialize timeout
+    resetTimeout();
+
+    // Cleanup
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimeout);
+      });
+    };
+  }, [user, navigate]);
+
   // Authentication check
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
+        // Reset to welcome page on fresh login
+        setCurrentPage('welcome');
       } else {
         // User is not authenticated, redirect to login
         navigate('/', { replace: true });
@@ -37,14 +106,14 @@ const Dashboard = () => {
   useEffect(() => {
     try {
       const savedPage = localStorage.getItem('currentPage');
-      if (savedPage) {
+      if (savedPage && user) {
         setCurrentPage(savedPage);
       }
     } catch (error) {
       // localStorage not available (private browsing, disabled, etc.)
       console.warn('localStorage not available for page persistence');
     }
-  }, []);
+  }, [user]);
 
   // Show loading while checking authentication
   if (loading) {
@@ -72,6 +141,12 @@ const Dashboard = () => {
   };
 
   const handleLogout = async () => {
+    // Clear saved page state before logout
+    try {
+      localStorage.removeItem('currentPage');
+    } catch (error) {
+      console.warn('Could not clear localStorage');
+    }
     await signOut(auth);
     navigate('/');
   };
@@ -90,7 +165,7 @@ const Dashboard = () => {
               </div>
 
               {/* System Selection */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 max-w-4xl mx-auto px-4 sm:px-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto px-4 sm:px-6">
                 {/* Fuel Support System */}
                 <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 sm:p-8 lg:p-10 rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
                   <div className="text-center">
@@ -133,6 +208,29 @@ const Dashboard = () => {
                       className="w-full bg-green-600 hover:bg-green-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 shadow-md hover:shadow-lg"
                     >
                       Access GOCARD
+                    </button>
+                  </div>
+                </div>
+
+                {/* Standby System */}
+                <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 sm:p-8 lg:p-10 rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
+                  <div className="text-center">
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 ${theme === 'dark' ? 'bg-gray-700' : 'bg-green-100'} rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6`}>
+                      <svg className={`w-8 h-8 sm:w-10 sm:h-10 ${theme === 'dark' ? 'text-gray-300' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className={`text-xl sm:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>
+                      Standby System
+                    </h3>
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed px-2`}>
+                      Track standby operations with watch assignments, locations, and detailed notes for duty management.
+                    </p>
+                    <button
+                      onClick={() => setCurrentPageAndSave('standby')}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+                    >
+                      Access Standby
                     </button>
                   </div>
                 </div>
@@ -297,6 +395,10 @@ const Dashboard = () => {
             <GoCardTable />
           </div>
         );
+      case 'standby':
+        return (
+          <StandbyDashboard />
+        );
       case 'settings':
         return <Settings />;
       default:
@@ -310,7 +412,7 @@ const Dashboard = () => {
       <div className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
         <div className="flex items-center justify-center h-16 bg-gradient-to-r from-green-600 to-emerald-600">
           <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10" onError={(e) => e.target.style.display = 'none'} />
-          <h1 className="text-white text-lg font-bold ml-2">Anloga Ambulance</h1>
+          <h1 className="text-white text-sm font-bold ml-2">Anloga Ambulance Station</h1>
         </div>
         <nav className="mt-8">
           <div className={`px-4 py-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} font-medium`}>Navigation</div>
@@ -331,6 +433,12 @@ const Dashboard = () => {
             className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'go-card-dashboard' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
           >
             GOCARD Dashboard
+          </button>
+          <button
+            onClick={() => { setCurrentPageAndSave('standby'); setSidebarOpen(false); }}
+            className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'standby' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
+          >
+            Standby
           </button>
           <button
             onClick={() => { setCurrentPageAndSave('settings'); setSidebarOpen(false); }}
@@ -393,6 +501,7 @@ const Dashboard = () => {
                  currentPage === 'go-card-dashboard' ? 'GOCARD Dashboard' :
                  currentPage === 'go-card-form' ? 'GOCARD Form' :
                  currentPage === 'go-card-entries' ? 'GOCARD Entries' :
+                 currentPage === 'standby' ? 'Standby' :
                  'Settings'}
               </h1>
             </div>
@@ -420,6 +529,7 @@ const Dashboard = () => {
                    currentPage === 'go-card-dashboard' ? 'GOCARD Dashboard' :
                    currentPage === 'go-card-form' ? 'GOCARD Form' :
                    currentPage === 'go-card-entries' ? 'GOCARD Entries' :
+                   currentPage === 'standby' ? 'Standby' :
                    'Settings'}
                 </h1>
               </div>

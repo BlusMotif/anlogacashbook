@@ -14,12 +14,21 @@ const CashbookTable = () => {
   const [editData, setEditData] = useState({});
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
   const [user, setUser] = useState(null);
   const [isTableCollapsed, setIsTableCollapsed] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   // Refs for table containers
   const mobileTableRef = React.useRef(null);
   const desktopTableRef = React.useRef(null);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentEntries = filteredEntries.slice(startIndex, endIndex);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -75,8 +84,12 @@ const CashbookTable = () => {
     if (dateFrom) {
       filtered = filtered.filter(entry => new Date(entry.date) >= new Date(dateFrom));
     }
+    if (selectedYear) {
+      filtered = filtered.filter(entry => new Date(entry.date).getFullYear().toString() === selectedYear);
+    }
     setFilteredEntries(filtered);
-  }, [entries, search, dateFrom]);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [entries, search, dateFrom, selectedYear]);
 
   // Simplified scroll handling for better mobile experience
   useEffect(() => {
@@ -343,51 +356,63 @@ const CashbookTable = () => {
     try {
       // Create a new workbook
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Cashbook');
+      
+      // Pagination settings
+      const itemsPerPage = 50;
+      const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+      
+      // Create a worksheet for each page
+      for (let page = 0; page < totalPages; page++) {
+        const startIndex = page * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredEntries.length);
+        const pageEntries = filteredEntries.slice(startIndex, endIndex);
+        
+        const worksheet = workbook.addWorksheet(`Page ${page + 1}`);
 
-      // Set column widths
-      worksheet.columns = [
-        { key: 'date', header: 'Date', width: 12 },
-        { key: 'particulars', header: 'Particulars', width: 30 },
-        { key: 'receiptNo', header: 'Receipt No', width: 15 },
-        { key: 'receipt', header: 'Receipt (₵)', width: 15 },
-        { key: 'payment', header: 'Payment (₵)', width: 15 },
-        { key: 'balance', header: 'Balance (₵)', width: 15 },
-      ];
+        // Set column widths
+        worksheet.columns = [
+          { key: 'date', header: 'Date', width: 12 },
+          { key: 'particulars', header: 'Particulars', width: 30 },
+          { key: 'receiptNo', header: 'Receipt No', width: 15 },
+          { key: 'receipt', header: 'Receipt (₵)', width: 15 },
+          { key: 'payment', header: 'Payment (₵)', width: 15 },
+          { key: 'balance', header: 'Balance (₵)', width: 15 },
+        ];
 
-      // Style the header row - apply green background to all headers
-      const headerRow = worksheet.getRow(1);
-      headerRow.font = { bold: true, size: 12 };
-      headerRow.alignment = { horizontal: 'center' };
+        // Style the header row - apply green background to all headers
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true, size: 12 };
+        headerRow.alignment = { horizontal: 'center' };
 
-      // Apply green background and white text to all headers
-      for (let col = 1; col <= 6; col++) { // Columns A-F (all headers)
-        const headerCell = headerRow.getCell(col);
-        headerCell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF10B981' } // Green background
-        };
-        headerCell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } }; // White text
-      }
+        // Apply green background and white text to all headers
+        for (let col = 1; col <= 6; col++) { // Columns A-F (all headers)
+          const headerCell = headerRow.getCell(col);
+          headerCell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF10B981' } // Green background
+          };
+          headerCell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } }; // White text
+        }
 
-      // Add data rows
-      filteredEntries.forEach(entry => {
-        const row = worksheet.addRow({
-          date: entry.date,
-          particulars: entry.particulars,
-          receiptNo: entry.receiptNo,
-          receipt: entry.receipt,
-          payment: entry.payment,
-          balance: entry.balance
+        // Add data rows for this page
+        pageEntries.forEach(entry => {
+          const row = worksheet.addRow({
+            date: entry.date,
+            particulars: entry.particulars,
+            receiptNo: entry.receiptNo,
+            receipt: entry.receipt,
+            payment: entry.payment,
+            balance: entry.balance
+          });
+
+          // Style numeric columns (right alignment)
+          row.getCell('receipt').alignment = { horizontal: 'right' };
+          row.getCell('payment').alignment = { horizontal: 'right' };
+          row.getCell('balance').alignment = { horizontal: 'right' };
+          row.getCell('balance').font = { bold: true }; // Make balance column bold
         });
-
-        // Style numeric columns (right alignment)
-        row.getCell('receipt').alignment = { horizontal: 'right' };
-        row.getCell('payment').alignment = { horizontal: 'right' };
-        row.getCell('balance').alignment = { horizontal: 'right' };
-        row.getCell('balance').font = { bold: true }; // Make balance column bold
-      });
+      }
 
       // Generate buffer and create blob for download
       const buffer = await workbook.xlsx.writeBuffer();
@@ -406,7 +431,7 @@ const CashbookTable = () => {
       Swal.fire({
         icon: 'success',
         title: 'Export Successful!',
-        text: 'Your cashbook has been exported to Excel with bold headers.',
+        text: `Your cashbook has been exported to Excel with ${totalPages} sheet${totalPages > 1 ? 's' : ''} (50 entries per sheet).`,
         confirmButtonColor: '#10B981'
       });
     } catch (error) {
@@ -441,6 +466,20 @@ const CashbookTable = () => {
             onChange={(e) => setDateFrom(e.target.value)}
             className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base`}
           />
+        </div>
+        <div className="sm:w-auto w-full">
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base`}
+          >
+            <option value="">All Years</option>
+            {Array.from(new Set(entries.map(entry => new Date(entry.date).getFullYear())))
+              .sort((a, b) => b - a)
+              .map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+          </select>
         </div>
         <div className="flex gap-2 sm:w-auto w-full">
           <button
@@ -506,7 +545,7 @@ const CashbookTable = () => {
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
-                  {filteredEntries.map(entry => (
+                  {currentEntries.map(entry => (
                     <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
                       <td className={`px-1 py-1 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
@@ -653,7 +692,7 @@ const CashbookTable = () => {
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
-                  {filteredEntries.map(entry => (
+                  {currentEntries.map(entry => (
                     <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
                       <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                         {editingId === entry.id ? (
@@ -772,10 +811,43 @@ const CashbookTable = () => {
             </div>
           </div>
 
-          {/* Table Info */}
+          {/* Pagination and Table Info */}
           {filteredEntries.length > 0 && (
-            <div className={`mt-4 text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-              Showing {filteredEntries.length} entr{filteredEntries.length === 1 ? 'y' : 'ies'}
+            <div className="mt-4">
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mb-3">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      currentPage === 1
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+                        : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      currentPage === totalPages
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+                        : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+              {/* Table Info */}
+              <div className={`text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredEntries.length)} of {filteredEntries.length} entr{filteredEntries.length === 1 ? 'y' : 'ies'}
+              </div>
             </div>
           )}
         </>

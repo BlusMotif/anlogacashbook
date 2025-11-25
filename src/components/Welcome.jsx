@@ -71,7 +71,7 @@ const Welcome = () => {
             Welcome Back!
           </h1>
           <p className="text-xl text-white text-opacity-90 mb-2">
-            Anloga Ambulance Cashbook System
+            Anloga Ambulance Station
           </p>
           <p className="text-white text-opacity-80">
             Timely Care Saves Lives
