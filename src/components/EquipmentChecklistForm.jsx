@@ -227,7 +227,7 @@ const EquipmentChecklistForm = () => {
         {/* Checklist Items */}
         <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
           <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-            Equipment Items
+            Equipment List
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {CHECKLIST_ITEMS.map((item, index) => (
