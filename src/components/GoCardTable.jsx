@@ -19,6 +19,16 @@ const scrollbarHideStyle = `
 
 const GoCardTable = () => {
   const { theme } = useTheme();
+
+  // Format date to DD/MM/YYYY
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const [entries, setEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -460,6 +470,36 @@ const GoCardTable = () => {
       {/* Inject custom CSS for hiding scrollbars */}
       <style dangerouslySetInnerHTML={{ __html: scrollbarHideStyle }} />
       
+      {/* Balance Summary Card */}
+      <div className={`mb-4 ${theme === 'dark' ? 'bg-gray-700 bg-opacity-50' : 'bg-purple-50 bg-opacity-50'} backdrop-blur-sm rounded-xl p-4 border ${theme === 'dark' ? 'border-gray-600' : 'border-purple-100'}`}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Entries</p>
+            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+              {filteredEntries.length}
+            </p>
+          </div>
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Receipt</p>
+            <p className={`text-2xl font-bold text-green-600`}>
+              GH₵ {filteredEntries.reduce((sum, entry) => sum + parseFloat(entry.receipt || 0), 0).toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Payment</p>
+            <p className={`text-2xl font-bold text-red-600`}>
+              GH₵ {filteredEntries.reduce((sum, entry) => sum + parseFloat(entry.payment || 0), 0).toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Current Balance</p>
+            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+              GH₵ {filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].balance.toFixed(2) : '0.00'}
+            </p>
+          </div>
+        </div>
+      </div>
+      
       {/* Search and Filter Controls - Fixed Header */}
       <div className={`mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sticky top-0 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} z-20 pb-4 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
         <div className="flex-1 min-w-0">
@@ -567,10 +607,10 @@ const GoCardTable = () => {
                             type="date"
                             value={editData.date || ''}
                             onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
-                          <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
+                          <span className="font-medium">{formatDate(entry.date)}</span>
                         )}
                       </td>
                       <td className={`px-1 py-1 text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -616,7 +656,7 @@ const GoCardTable = () => {
                             step="0.01"
                             value={editData.receipt || ''}
                             onChange={(e) => setEditData({ ...editData, receipt: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
@@ -629,7 +669,7 @@ const GoCardTable = () => {
                             step="0.01"
                             value={editData.payment || ''}
                             onChange={(e) => setEditData({ ...editData, payment: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-red-600">₵ {entry.payment.toFixed(2)}</span>
@@ -712,9 +752,9 @@ const GoCardTable = () => {
                     <th className="px-3 py-3 text-left font-semibold text-sm w-[10%] min-w-[80px]">Time</th>
                     <th className="px-3 py-3 text-left font-semibold text-sm w-[25%] min-w-[150px]">Merchant</th>
                     <th className="px-3 py-3 text-left font-semibold text-sm w-[20%] min-w-[120px]">Attendant</th>
-                    <th className="px-3 py-3 text-left font-semibold text-sm w-[11%] min-w-[100px]">Receipt (₵)</th>
-                    <th className="px-3 py-3 text-left font-semibold text-sm w-[11%] min-w-[100px]">Payment (₵)</th>
-                    <th className="px-3 py-3 text-left font-semibold text-sm w-[11%] min-w-[100px]">Balance (₵)</th>
+                    <th className="px-3 py-3 text-right font-semibold text-sm w-[11%] min-w-[100px]">Receipt (₵)</th>
+                    <th className="px-3 py-3 text-right font-semibold text-sm w-[11%] min-w-[100px]">Payment (₵)</th>
+                    <th className="px-3 py-3 text-right font-semibold text-sm w-[11%] min-w-[100px]">Balance (₵)</th>
                     <th className="px-3 py-3 text-center font-semibold text-sm w-[10%] min-w-[120px]">Actions</th>
                   </tr>
                 </thead>
@@ -727,10 +767,10 @@ const GoCardTable = () => {
                             type="date"
                             value={editData.date || ''}
                             onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
-                          <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
+                          <span className="font-medium">{formatDate(entry.date)}</span>
                         )}
                       </td>
                       <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -739,7 +779,7 @@ const GoCardTable = () => {
                             type="time"
                             value={editData.time || ''}
                             onChange={(e) => setEditData({ ...editData, time: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
                           entry.time
@@ -751,7 +791,7 @@ const GoCardTable = () => {
                             type="text"
                             value={editData.merchant || ''}
                             onChange={(e) => setEditData({ ...editData, merchant: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
                           <span className="break-words">{entry.merchant}</span>
@@ -763,7 +803,7 @@ const GoCardTable = () => {
                             type="text"
                             value={editData.attendant || ''}
                             onChange={(e) => setEditData({ ...editData, attendant: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
                           entry.attendant
@@ -776,7 +816,7 @@ const GoCardTable = () => {
                             step="0.01"
                             value={editData.receipt || ''}
                             onChange={(e) => setEditData({ ...editData, receipt: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
@@ -789,7 +829,7 @@ const GoCardTable = () => {
                             step="0.01"
                             value={editData.payment || ''}
                             onChange={(e) => setEditData({ ...editData, payment: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-red-600">₵ {entry.payment.toFixed(2)}</span>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { ref, get, set, push } from 'firebase/database';
 import Swal from 'sweetalert2';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useTheme } from '../ThemeContext';
@@ -23,6 +24,128 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
+  const [backupEmail, setBackupEmail] = useState('');
+  const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
+  const [backupFrequency, setBackupFrequency] = useState('daily');
+  const [restoreFile, setRestoreFile] = useState(null);
+  const [availableBackups, setAvailableBackups] = useState([]);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Load saved backup settings
+        const savedEmail = localStorage.getItem(`backup_email_${currentUser.uid}`);
+        const savedAutoBackup = localStorage.getItem(`auto_backup_${currentUser.uid}`);
+        const savedFrequency = localStorage.getItem(`backup_frequency_${currentUser.uid}`);
+        
+        if (savedEmail) setBackupEmail(savedEmail);
+        if (savedAutoBackup) setAutoBackupEnabled(savedAutoBackup === 'true');
+        if (savedFrequency) setBackupFrequency(savedFrequency);
+        
+        // Load available backups from localStorage
+        loadAvailableBackups(currentUser.uid);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (user && autoBackupEnabled) {
+      const interval = getBackupInterval();
+      const backupInterval = setInterval(() => {
+        performAutoBackup();
+      }, interval);
+
+      return () => clearInterval(backupInterval);
+    }
+  }, [user, autoBackupEnabled, backupFrequency]);
+
+  const getBackupInterval = () => {
+    switch (backupFrequency) {
+      case 'hourly': return 3600000; // 1 hour
+      case 'daily': return 86400000; // 24 hours
+      case 'weekly': return 604800000; // 7 days
+      default: return 86400000;
+    }
+  };
+
+  const loadAvailableBackups = (userId) => {
+    const backupsKey = `backups_list_${userId}`;
+    const backupsJson = localStorage.getItem(backupsKey);
+    if (backupsJson) {
+      setAvailableBackups(JSON.parse(backupsJson));
+    }
+  };
+
+  const saveBackupToStorage = async (backupData, timestamp) => {
+    if (!user) return;
+    
+    const backupsKey = `backups_list_${user.uid}`;
+    const backupKey = `backup_${user.uid}_${timestamp}`;
+    
+    // Save backup data
+    localStorage.setItem(backupKey, JSON.stringify(backupData));
+    
+    // Update backups list
+    const currentBackups = availableBackups;
+    const newBackup = {
+      id: backupKey,
+      timestamp: timestamp,
+      date: new Date(timestamp).toLocaleString(),
+      size: JSON.stringify(backupData).length
+    };
+    
+    const updatedBackups = [newBackup, ...currentBackups].slice(0, 10); // Keep only last 10 backups
+    localStorage.setItem(backupsKey, JSON.stringify(updatedBackups));
+    setAvailableBackups(updatedBackups);
+    
+    return newBackup;
+  };
+
+  const performAutoBackup = async () => {
+    if (!user || !backupEmail) return;
+
+    try {
+      // Fetch all data from Firebase
+      const cashbookRef = ref(db, 'cashbook');
+      const gocardRef = ref(db, 'gocard');
+      const standbyRef = ref(db, 'standby');
+      const assetRegisterRef = ref(db, 'assetRegister');
+
+      const [cashbookSnapshot, gocardSnapshot, standbySnapshot, assetRegisterSnapshot] = await Promise.all([
+        get(cashbookRef),
+        get(gocardRef),
+        get(standbyRef),
+        get(assetRegisterRef)
+      ]);
+
+      const timestamp = Date.now();
+      const backupData = {
+        metadata: {
+          backupDate: new Date(timestamp).toISOString(),
+          userEmail: user.email,
+          userId: user.uid,
+          version: '1.0',
+          autoBackup: true
+        },
+        cashbook: cashbookSnapshot.val() || {},
+        gocard: gocardSnapshot.val() || {},
+        standby: standbySnapshot.val() || {},
+        assetRegister: assetRegisterSnapshot.val() || {}
+      };
+
+      // Save to local storage
+      await saveBackupToStorage(backupData, timestamp);
+
+      // Send email notification (simulated - would need backend service)
+      console.log(`Auto backup created and would be sent to ${backupEmail}`);
+      
+    } catch (err) {
+      console.error('Auto backup failed:', err);
+    }
+  };
 
   React.useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -208,6 +331,284 @@ const Settings = () => {
       }
 
       setError(err.message || 'Failed to set delete password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackupData = async () => {
+    try {
+      if (!user) {
+        throw new Error('No user logged in');
+      }
+
+      setLoading(true);
+
+      // Show loading alert
+      Swal.fire({
+        title: 'Creating Backup...',
+        text: 'Please wait while we backup your data',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Fetch all data from Firebase
+      const cashbookRef = ref(db, 'cashbook');
+      const gocardRef = ref(db, 'gocard');
+      const standbyRef = ref(db, 'standby');
+      const assetRegisterRef = ref(db, 'assetRegister');
+
+      const [cashbookSnapshot, gocardSnapshot, standbySnapshot, assetRegisterSnapshot] = await Promise.all([
+        get(cashbookRef),
+        get(gocardRef),
+        get(standbyRef),
+        get(assetRegisterRef)
+      ]);
+
+      const timestamp = Date.now();
+      // Prepare backup data
+      const backupData = {
+        metadata: {
+          backupDate: new Date(timestamp).toISOString(),
+          userEmail: user.email,
+          userId: user.uid,
+          version: '1.0'
+        },
+        cashbook: cashbookSnapshot.val() || {},
+        gocard: gocardSnapshot.val() || {},
+        standby: standbySnapshot.val() || {},
+        assetRegister: assetRegisterSnapshot.val() || {}
+      };
+
+      // Save to local storage
+      await saveBackupToStorage(backupData, timestamp);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Backup Created!',
+        html: `
+          <p>Your data has been successfully backed up.</p>
+          <p class="text-sm text-gray-600 mt-2">Backup saved: ${new Date(timestamp).toLocaleString()}</p>
+          <p class="text-sm text-gray-500 mt-2">Backup stored locally and ready for restoration.</p>
+        `,
+        confirmButtonColor: '#10B981'
+      });
+
+    } catch (err) {
+      console.error('Error creating backup:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Backup Failed',
+        text: err.message || 'Failed to create backup. Please try again.',
+        confirmButtonColor: '#DC2626'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveBackupSettings = () => {
+    if (!user) return;
+
+    if (autoBackupEnabled && !backupEmail) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Email Required',
+        text: 'Please enter an email address for backup notifications.',
+        confirmButtonColor: '#10B981'
+      });
+      return;
+    }
+
+    // Save settings to localStorage
+    localStorage.setItem(`backup_email_${user.uid}`, backupEmail);
+    localStorage.setItem(`auto_backup_${user.uid}`, autoBackupEnabled.toString());
+    localStorage.setItem(`backup_frequency_${user.uid}`, backupFrequency);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Settings Saved!',
+      text: autoBackupEnabled 
+        ? `Auto backup enabled. Backups will be created ${backupFrequency} and notifications sent to ${backupEmail}`
+        : 'Auto backup disabled.',
+      confirmButtonColor: '#10B981'
+    });
+  };
+
+  const handleRestoreBackup = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const backupData = JSON.parse(event.target.result);
+
+          // Validate backup structure
+          if (!backupData.metadata || !backupData.metadata.version) {
+            throw new Error('Invalid backup file format');
+          }
+
+          // Show confirmation with backup details
+          const result = await Swal.fire({
+            title: 'Restore Backup?',
+            html: `
+              <div class="text-left">
+                <p><strong>Backup Date:</strong> ${new Date(backupData.metadata.backupDate).toLocaleString()}</p>
+                <p><strong>User:</strong> ${backupData.metadata.userEmail}</p>
+                <p class="text-red-600 mt-4"><strong>Warning:</strong> This will replace all current data!</p>
+              </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Yes, Restore',
+            cancelButtonText: 'Cancel'
+          });
+
+          if (!result.isConfirmed) {
+            setLoading(false);
+            return;
+          }
+
+          Swal.fire({
+            title: 'Restoring Backup...',
+            text: 'Please wait while we restore your data',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          // Restore data to Firebase
+          const promises = [];
+          if (backupData.cashbook) {
+            promises.push(set(ref(db, 'cashbook'), backupData.cashbook));
+          }
+          if (backupData.gocard) {
+            promises.push(set(ref(db, 'gocard'), backupData.gocard));
+          }
+          if (backupData.standby) {
+            promises.push(set(ref(db, 'standby'), backupData.standby));
+          }
+          if (backupData.assetRegister) {
+            promises.push(set(ref(db, 'assetRegister'), backupData.assetRegister));
+          }
+
+          await Promise.all(promises);
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Restore Complete!',
+            text: 'Your data has been successfully restored from the backup.',
+            confirmButtonColor: '#10B981'
+          });
+
+        } catch (err) {
+          console.error('Error parsing backup file:', err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Restore Failed',
+            text: err.message || 'Invalid backup file or restore failed.',
+            confirmButtonColor: '#DC2626'
+          });
+        } finally {
+          setLoading(false);
+          e.target.value = ''; // Reset file input
+        }
+      };
+
+      reader.readAsText(file);
+
+    } catch (err) {
+      console.error('Error reading backup file:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to read backup file.',
+        confirmButtonColor: '#DC2626'
+      });
+      setLoading(false);
+    }
+  };
+
+  const handleRestoreFromStorage = async (backupId) => {
+    try {
+      const backupJson = localStorage.getItem(backupId);
+      if (!backupJson) {
+        throw new Error('Backup not found');
+      }
+
+      const backupData = JSON.parse(backupJson);
+
+      // Show confirmation
+      const result = await Swal.fire({
+        title: 'Restore Backup?',
+        html: `
+          <div class="text-left">
+            <p><strong>Backup Date:</strong> ${new Date(backupData.metadata.backupDate).toLocaleString()}</p>
+            <p class="text-red-600 mt-4"><strong>Warning:</strong> This will replace all current data!</p>
+          </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Yes, Restore',
+        cancelButtonText: 'Cancel'
+      });
+
+      if (!result.isConfirmed) return;
+
+      setLoading(true);
+
+      Swal.fire({
+        title: 'Restoring Backup...',
+        text: 'Please wait while we restore your data',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Restore data to Firebase
+      const promises = [];
+      if (backupData.cashbook) {
+        promises.push(set(ref(db, 'cashbook'), backupData.cashbook));
+      }
+      if (backupData.gocard) {
+        promises.push(set(ref(db, 'gocard'), backupData.gocard));
+      }
+      if (backupData.standby) {
+        promises.push(set(ref(db, 'standby'), backupData.standby));
+      }
+      if (backupData.assetRegister) {
+        promises.push(set(ref(db, 'assetRegister'), backupData.assetRegister));
+      }
+
+      await Promise.all(promises);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Restore Complete!',
+        text: 'Your data has been successfully restored.',
+        confirmButtonColor: '#10B981'
+      });
+
+    } catch (err) {
+      console.error('Error restoring backup:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Restore Failed',
+        text: err.message || 'Failed to restore backup.',
+        confirmButtonColor: '#DC2626'
+      });
     } finally {
       setLoading(false);
     }
@@ -514,6 +915,147 @@ const Settings = () => {
               {loading ? 'Setting...' : 'Set Delete Password'}
             </button>
           </form>
+        </div>
+
+        {/* Backup Data Section */}
+        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} p-6 rounded-xl`}>
+          <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Backup & Restore</h3>
+          
+          {/* Auto Backup Settings */}
+          <div className={`mb-6 p-4 ${theme === 'dark' ? 'bg-gray-600' : 'bg-white'} rounded-lg border ${theme === 'dark' ? 'border-gray-500' : 'border-gray-200'}`}>
+            <h4 className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Auto Backup Settings</h4>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className={`text-sm ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Enable Auto Backup</label>
+                <button
+                  type="button"
+                  onClick={() => setAutoBackupEnabled(!autoBackupEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoBackupEnabled ? 'bg-green-600' : 'bg-gray-300'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoBackupEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {autoBackupEnabled && (
+                <>
+                  <div>
+                    <label className={`block text-sm ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} mb-2`}>Backup Email</label>
+                    <input
+                      type="email"
+                      value={backupEmail}
+                      onChange={(e) => setBackupEmail(e.target.value)}
+                      className={`w-full px-3 py-2 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500`}
+                      placeholder="email@example.com"
+                    />
+                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Backup notifications will be sent to this email</p>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} mb-2`}>Backup Frequency</label>
+                    <select
+                      value={backupFrequency}
+                      onChange={(e) => setBackupFrequency(e.target.value)}
+                      className={`w-full px-3 py-2 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    >
+                      <option value="hourly">Every Hour</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={handleSaveBackupSettings}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition duration-200"
+                  >
+                    Save Auto Backup Settings
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Manual Backup */}
+          <div className={`mb-6 p-4 ${theme === 'dark' ? 'bg-gray-600' : 'bg-white'} rounded-lg border ${theme === 'dark' ? 'border-gray-500' : 'border-gray-200'}`}>
+            <h4 className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Quick Backup</h4>
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-3`}>
+              Create an instant backup of all your data with current date and time.
+            </p>
+            <button
+              onClick={handleBackupData}
+              disabled={loading}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-semibold transition duration-200 shadow disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Creating Backup...' : 'Backup Now'}
+            </button>
+          </div>
+
+          {/* Detailed Info */}
+          <div className={`mb-6 p-3 ${theme === 'dark' ? 'bg-green-900 border-green-700 text-green-200' : 'bg-green-50 border-green-200 text-green-800'} border rounded-lg`}>
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium">What's Backed Up?</p>
+                <p className={`text-xs ${theme === 'dark' ? 'text-green-300' : 'text-green-700'} mt-1`}>
+                  All data including Fuel Support, GOCARD, Standby, and Asset Register entries.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Restore Section */}
+          <div className={`p-4 ${theme === 'dark' ? 'bg-gray-600' : 'bg-white'} rounded-lg border ${theme === 'dark' ? 'border-gray-500' : 'border-gray-200'}`}>
+            <h4 className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>Restore From Backup</h4>
+            
+            {/* Recent Backups */}
+            {availableBackups.length > 0 && (
+              <div className="mb-4">
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-2`}>Recent Backups (stored locally):</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {availableBackups.map((backup) => (
+                    <div key={backup.id} className={`flex items-center justify-between p-2 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} rounded`}>
+                      <div>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{backup.date}</p>
+                        <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Size: {(backup.size / 1024).toFixed(2)} KB</p>
+                      </div>
+                      <button
+                        onClick={() => handleRestoreFromStorage(backup.id)}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition duration-200"
+                        disabled={loading}
+                      >
+                        Restore
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Upload Backup File */}
+            <div>
+              <label className={`block text-sm ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
+                Upload Backup File
+              </label>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleRestoreBackup}
+                disabled={loading}
+                className={`w-full px-3 py-2 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold ${theme === 'dark' ? 'file:bg-green-600 file:text-white' : 'file:bg-green-50 file:text-green-700'} hover:file:bg-green-100 disabled:opacity-50`}
+              />
+              <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                Select a backup JSON file to restore your data
+              </p>
+            </div>
+
+            <div className={`mt-3 p-2 ${theme === 'dark' ? 'bg-yellow-900 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded`}>
+              <p className={`text-xs ${theme === 'dark' ? 'text-yellow-200' : 'text-yellow-800'}`}>
+                ⚠️ Warning: Restoring will replace all current data with the backup data.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

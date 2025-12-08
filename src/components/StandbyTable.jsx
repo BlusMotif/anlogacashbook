@@ -7,6 +7,16 @@ import ExcelJS from 'exceljs';
 
 const StandbyTable = ({ onEdit }) => {
   const { theme } = useTheme();
+
+  // Format date to DD/MM/YYYY
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const [entries, setEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
@@ -97,7 +107,7 @@ const StandbyTable = ({ onEdit }) => {
       title: 'Reason/Notes',
       html: `
         <div style="text-align: left; margin-top: 20px;">
-          <p style="margin-bottom: 10px;"><strong>Date:</strong> ${entry.date}</p>
+          <p style="margin-bottom: 10px;"><strong>Date:</strong> ${formatDate(entry.date)}</p>
           <p style="margin-bottom: 10px;"><strong>Location:</strong> ${entry.location}</p>
           <p style="margin-bottom: 10px;"><strong>Watch:</strong> ${entry.watch}</p>
           <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
@@ -163,7 +173,7 @@ const StandbyTable = ({ onEdit }) => {
       // Add data
       sheetEntries.forEach(entry => {
         worksheet.addRow([
-          entry.date,
+          formatDate(entry.date),
           entry.location,
           entry.reason,
           entry.watch,
@@ -318,7 +328,7 @@ const StandbyTable = ({ onEdit }) => {
               currentEntries.map((entry) => (
                 <tr key={entry.id} className={theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                   <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                    {entry.date}
+                    {formatDate(entry.date)}
                   </td>
                   <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                     {entry.location}

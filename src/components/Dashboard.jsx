@@ -11,6 +11,12 @@ import GoCardTable from './GoCardTable';
 import Settings from './Settings';
 import StandbyForm from './StandbyForm';
 import StandbyTable from './StandbyTable';
+import AssetRegisterForm from './AssetRegisterForm';
+import AssetRegisterTable from './AssetRegisterTable';
+import EquipmentChecklistForm from './EquipmentChecklistForm';
+import EquipmentChecklistTable from './EquipmentChecklistTable';
+import VehicleInspectionForm from './VehicleInspectionForm';
+import VehicleInspectionTable from './VehicleInspectionTable';
 
 const StandbyDashboard = () => {
   const [editingEntry, setEditingEntry] = useState(null);
@@ -29,6 +35,44 @@ const StandbyDashboard = () => {
     <div className="space-y-6">
       <StandbyForm editingEntry={editingEntry} onCancelEdit={handleCancelEdit} />
       <StandbyTable onEdit={handleEdit} />
+    </div>
+  );
+};
+
+const AssetRegisterDashboard = () => {
+  const [editingEntry, setEditingEntry] = useState(null);
+
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      <AssetRegisterForm editingEntry={editingEntry} onCancelEdit={handleCancelEdit} />
+      <AssetRegisterTable onEdit={handleEdit} />
+    </div>
+  );
+};
+
+const EquipmentChecklistDashboard = () => {
+  return (
+    <div className="space-y-6">
+      <EquipmentChecklistForm />
+      <EquipmentChecklistTable />
+    </div>
+  );
+};
+
+const VehicleInspectionDashboard = () => {
+  return (
+    <div className="space-y-6">
+      <VehicleInspectionForm />
+      <VehicleInspectionTable />
     </div>
   );
 };
@@ -155,85 +199,192 @@ const Dashboard = () => {
     switch (currentPage) {
       case 'welcome':
         return (
-          <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} flex items-center justify-center px-4 py-8`}>
-            <div className="w-full max-w-6xl mx-auto">
-              {/* Welcome Message */}
-              <div className="text-center mb-16">
-                <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-3xl mx-auto leading-relaxed`}>
-                  Choose your preferred management system to efficiently track and manage your financial operations.
+          <div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50'} px-4 py-12`}>
+            <div className="w-full max-w-7xl mx-auto">
+              {/* Header Section */}
+              <div className="text-center mb-12 animate-fade-in">
+                <div className="mb-6">
+                  <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${theme === 'dark' ? 'bg-green-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'} mb-4 shadow-xl`}>
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                </div>
+                <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Anloga Ambulance Station
+                </h1>
+                <p className={`text-xl md:text-2xl font-semibold mb-3 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                  Management System Dashboard
+                </p>
+                <p className={`text-base md:text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} max-w-3xl mx-auto leading-relaxed`}>
+                  Comprehensive tools to efficiently manage operations, track resources, and maintain records
                 </p>
               </div>
 
-              {/* System Selection */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto px-4 sm:px-6">
+              {/* System Selection Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {/* Fuel Support System */}
-                <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 sm:p-8 lg:p-10 rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
+                <div 
+                  onClick={() => setCurrentPageAndSave('dashboard')}
+                  className={`group cursor-pointer ${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} p-8 rounded-2xl shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-green-500`}
+                >
                   <div className="text-center">
-                    <div className={`w-16 h-16 sm:w-20 sm:h-20 ${theme === 'dark' ? 'bg-gray-700' : 'bg-green-100'} rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6`}>
-                      <svg className={`w-8 h-8 sm:w-10 sm:h-10 ${theme === 'dark' ? 'text-gray-300' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className={`w-16 h-16 ${theme === 'dark' ? 'bg-green-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
-                    <h3 className={`text-xl sm:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>
-                      Fuel Support System
+                    <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-3 group-hover:text-green-600 transition-colors`}>
+                      Fuel Support
                     </h3>
-                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed px-2`}>
-                      Manage fuel-related financial transactions and track expenses with real-time balance calculations.
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed mb-5`}>
+                      Track fuel transactions, expenses, and maintain real-time balance calculations
                     </p>
-                    <button
-                      onClick={() => setCurrentPageAndSave('dashboard')}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-                    >
-                      Access Fuel Support
-                    </button>
+                    <div className={`flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} group-hover:translate-x-2 transition-transform duration-300`}>
+                      <span>Open System</span>
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
                 {/* GOCARD System */}
-                <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 sm:p-8 lg:p-10 rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
+                <div 
+                  onClick={() => setCurrentPageAndSave('go-card-dashboard')}
+                  className={`group cursor-pointer ${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} p-8 rounded-2xl shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-green-500`}
+                >
                   <div className="text-center">
-                    <div className={`w-16 h-16 sm:w-20 sm:h-20 ${theme === 'dark' ? 'bg-gray-700' : 'bg-green-100'} rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6`}>
-                      <svg className={`w-8 h-8 sm:w-10 sm:h-10 ${theme === 'dark' ? 'text-gray-300' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className={`w-16 h-16 ${theme === 'dark' ? 'bg-green-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
                     </div>
-                    <h3 className={`text-xl sm:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>
-                      GOCARD System
+                    <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-3 group-hover:text-green-600 transition-colors`}>
+                      GOCARD
                     </h3>
-                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed px-2`}>
-                      Track GOCARD transactions with detailed merchant and attendant information for comprehensive records.
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed mb-5`}>
+                      Manage GOCARD transactions with merchant and attendant details
                     </p>
-                    <button
-                      onClick={() => setCurrentPageAndSave('go-card-dashboard')}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-                    >
-                      Access GOCARD
-                    </button>
+                    <div className={`flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} group-hover:translate-x-2 transition-transform duration-300`}>
+                      <span>Open System</span>
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
                 {/* Standby System */}
-                <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 sm:p-8 lg:p-10 rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
+                <div 
+                  onClick={() => setCurrentPageAndSave('standby')}
+                  className={`group cursor-pointer ${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} p-8 rounded-2xl shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-green-500`}
+                >
                   <div className="text-center">
-                    <div className={`w-16 h-16 sm:w-20 sm:h-20 ${theme === 'dark' ? 'bg-gray-700' : 'bg-green-100'} rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6`}>
-                      <svg className={`w-8 h-8 sm:w-10 sm:h-10 ${theme === 'dark' ? 'text-gray-300' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className={`w-16 h-16 ${theme === 'dark' ? 'bg-green-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <h3 className={`text-xl sm:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-3`}>
-                      Standby System
+                    <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-3 group-hover:text-green-600 transition-colors`}>
+                      Standby
                     </h3>
-                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed px-2`}>
-                      Track standby operations with watch assignments, locations, and detailed notes for duty management.
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed mb-5`}>
+                      Track standby operations with watch assignments and locations
                     </p>
-                    <button
-                      onClick={() => setCurrentPageAndSave('standby')}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-                    >
-                      Access Standby
-                    </button>
+                    <div className={`flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} group-hover:translate-x-2 transition-transform duration-300`}>
+                      <span>Open System</span>
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
+
+                {/* Asset Register System */}
+                <div 
+                  onClick={() => setCurrentPageAndSave('asset-register')}
+                  className={`group cursor-pointer ${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} p-8 rounded-2xl shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-green-500`}
+                >
+                  <div className="text-center">
+                    <div className={`w-16 h-16 ${theme === 'dark' ? 'bg-green-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-3 group-hover:text-green-600 transition-colors`}>
+                      Asset Register
+                    </h3>
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed mb-5`}>
+                      Manage station assets with detailed records and condition monitoring
+                    </p>
+                    <div className={`flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} group-hover:translate-x-2 transition-transform duration-300`}>
+                      <span>Open System</span>
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Equipment Checklist System */}
+                <div 
+                  onClick={() => setCurrentPageAndSave('equipment-checklist')}
+                  className={`group cursor-pointer ${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} p-8 rounded-2xl shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-green-500`}
+                >
+                  <div className="text-center">
+                    <div className={`w-16 h-16 ${theme === 'dark' ? 'bg-green-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                    </div>
+                    <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-3 group-hover:text-green-600 transition-colors`}>
+                      Medical Equipment
+                    </h3>
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed mb-5`}>
+                      Comprehensive checklist for medical equipment shift inspections
+                    </p>
+                    <div className={`flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} group-hover:translate-x-2 transition-transform duration-300`}>
+                      <span>Open System</span>
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vehicle Inspection System */}
+                <div 
+                  onClick={() => setCurrentPageAndSave('vehicle-inspection')}
+                  className={`group cursor-pointer ${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} p-8 rounded-2xl shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-green-500`}
+                >
+                  <div className="text-center">
+                    <div className={`w-16 h-16 ${theme === 'dark' ? 'bg-green-600' : 'bg-gradient-to-br from-green-500 to-emerald-600'} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-3 group-hover:text-green-600 transition-colors`}>
+                      Vehicle Inspection
+                    </h3>
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed mb-5`}>
+                      Comprehensive vehicle inspection checklist for shift handovers
+                    </p>
+                    <div className={`flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} group-hover:translate-x-2 transition-transform duration-300`}>
+                      <span>Open System</span>
+                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Info */}
+              <div className="text-center mt-12">
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Select a system above to begin managing your operations • Timely Care Saves Lives
+                </p>
               </div>
             </div>
           </div>
@@ -399,6 +550,18 @@ const Dashboard = () => {
         return (
           <StandbyDashboard />
         );
+      case 'asset-register':
+        return (
+          <AssetRegisterDashboard />
+        );
+      case 'equipment-checklist':
+        return (
+          <EquipmentChecklistDashboard />
+        );
+      case 'vehicle-inspection':
+        return (
+          <VehicleInspectionDashboard />
+        );
       case 'settings':
         return <Settings />;
       default:
@@ -439,6 +602,24 @@ const Dashboard = () => {
             className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'standby' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
           >
             Standby
+          </button>
+          <button
+            onClick={() => { setCurrentPageAndSave('asset-register'); setSidebarOpen(false); }}
+            className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'asset-register' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
+          >
+            Asset Register
+          </button>
+          <button
+            onClick={() => { setCurrentPageAndSave('equipment-checklist'); setSidebarOpen(false); }}
+            className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'equipment-checklist' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
+          >
+            Equipment Checklist
+          </button>
+          <button
+            onClick={() => { setCurrentPageAndSave('vehicle-inspection'); setSidebarOpen(false); }}
+            className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'vehicle-inspection' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
+          >
+            Vehicle Inspection
           </button>
           <button
             onClick={() => { setCurrentPageAndSave('settings'); setSidebarOpen(false); }}
@@ -502,6 +683,9 @@ const Dashboard = () => {
                  currentPage === 'go-card-form' ? 'GOCARD Form' :
                  currentPage === 'go-card-entries' ? 'GOCARD Entries' :
                  currentPage === 'standby' ? 'Standby' :
+                 currentPage === 'asset-register' ? 'Asset Register' :
+                 currentPage === 'equipment-checklist' ? 'Equipment Checklist' :
+                 currentPage === 'vehicle-inspection' ? 'Vehicle Inspection' :
                  'Settings'}
               </h1>
             </div>
@@ -530,6 +714,9 @@ const Dashboard = () => {
                    currentPage === 'go-card-form' ? 'GOCARD Form' :
                    currentPage === 'go-card-entries' ? 'GOCARD Entries' :
                    currentPage === 'standby' ? 'Standby' :
+                   currentPage === 'asset-register' ? 'Asset Register' :
+                   currentPage === 'equipment-checklist' ? 'Equipment Checklist' :
+                   currentPage === 'vehicle-inspection' ? 'Vehicle Inspection' :
                    'Settings'}
                 </h1>
               </div>

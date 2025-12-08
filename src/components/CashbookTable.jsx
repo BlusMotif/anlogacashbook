@@ -8,6 +8,15 @@ import { useTheme } from '../ThemeContext';
 
 const CashbookTable = () => {
   const { theme } = useTheme();
+
+  // Format date to DD/MM/YYYY
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
   const [entries, setEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -447,6 +456,36 @@ const CashbookTable = () => {
 
   return (
     <div className={`${theme === 'dark' ? 'bg-gray-800 bg-opacity-80 border-gray-700' : 'bg-white bg-opacity-80 border-white border-opacity-20'} backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border`}>
+      {/* Balance Summary Card */}
+      <div className={`mb-4 ${theme === 'dark' ? 'bg-gray-700 bg-opacity-50' : 'bg-green-50 bg-opacity-50'} backdrop-blur-sm rounded-xl p-4 border ${theme === 'dark' ? 'border-gray-600' : 'border-green-100'}`}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Entries</p>
+            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+              {filteredEntries.length}
+            </p>
+          </div>
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Receipt</p>
+            <p className={`text-2xl font-bold text-green-600`}>
+              GH₵ {filteredEntries.reduce((sum, entry) => sum + parseFloat(entry.receipt || 0), 0).toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Payment</p>
+            <p className={`text-2xl font-bold text-red-600`}>
+              GH₵ {filteredEntries.reduce((sum, entry) => sum + parseFloat(entry.payment || 0), 0).toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Current Balance</p>
+            <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+              GH₵ {filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].balance.toFixed(2) : '0.00'}
+            </p>
+          </div>
+        </div>
+      </div>
+      
       {/* Search and Filter Controls - Fixed Header */}
       <div className={`mb-6 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sticky top-0 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} z-20 pb-4 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} border-b`}>
         <div className="flex-1 min-w-0">
@@ -565,7 +604,7 @@ const CashbookTable = () => {
                             type="text"
                             value={editData.particulars || ''}
                             onChange={(e) => setEditData({ ...editData, particulars: e.target.value })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
                           <span className="break-words">{entry.particulars}</span>
@@ -590,7 +629,7 @@ const CashbookTable = () => {
                             step="0.01"
                             value={editData.receipt || ''}
                             onChange={(e) => setEditData({ ...editData, receipt: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
@@ -603,7 +642,7 @@ const CashbookTable = () => {
                             step="0.01"
                             value={editData.payment || ''}
                             onChange={(e) => setEditData({ ...editData, payment: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-1 py-1 border border-gray-300 rounded text-xs text-right focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-red-600">₵ {entry.payment.toFixed(2)}</span>
@@ -685,9 +724,9 @@ const CashbookTable = () => {
                     <th className="px-3 py-3 text-left font-semibold text-sm w-[12%] min-w-[100px]">Date</th>
                     <th className="px-3 py-3 text-left font-semibold text-sm w-[25%] min-w-[150px]">Particulars</th>
                     <th className="px-3 py-3 text-left font-semibold text-sm w-[15%] min-w-[120px]">Receipt No</th>
-                    <th className="px-3 py-3 text-left font-semibold text-sm w-[12%] min-w-[100px]">Receipt (₵)</th>
-                    <th className="px-3 py-3 text-left font-semibold text-sm w-[12%] min-w-[100px]">Payment (₵)</th>
-                    <th className="px-3 py-3 text-left font-semibold text-sm w-[12%] min-w-[100px]">Balance (₵)</th>
+                    <th className="px-3 py-3 text-right font-semibold text-sm w-[12%] min-w-[100px]">Receipt (₵)</th>
+                    <th className="px-3 py-3 text-right font-semibold text-sm w-[12%] min-w-[100px]">Payment (₵)</th>
+                    <th className="px-3 py-3 text-right font-semibold text-sm w-[12%] min-w-[100px]">Balance (₵)</th>
                     <th className="px-3 py-3 text-center font-semibold text-sm w-[12%] min-w-[120px]">Actions</th>
                   </tr>
                 </thead>
@@ -700,10 +739,10 @@ const CashbookTable = () => {
                             type="date"
                             value={editData.date || ''}
                             onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
-                          <span className="font-medium">{new Date(entry.date).toLocaleDateString()}</span>
+                          <span className="font-medium">{formatDate(entry.date)}</span>
                         )}
                       </td>
                       <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -712,7 +751,7 @@ const CashbookTable = () => {
                             type="text"
                             value={editData.particulars || ''}
                             onChange={(e) => setEditData({ ...editData, particulars: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
                           <span className="break-words">{entry.particulars}</span>
@@ -724,7 +763,7 @@ const CashbookTable = () => {
                             type="text"
                             value={editData.receiptNo || ''}
                             onChange={(e) => setEditData({ ...editData, receiptNo: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
                           entry.receiptNo
@@ -737,7 +776,7 @@ const CashbookTable = () => {
                             step="0.01"
                             value={editData.receipt || ''}
                             onChange={(e) => setEditData({ ...editData, receipt: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-green-600">₵ {entry.receipt.toFixed(2)}</span>
@@ -750,7 +789,7 @@ const CashbookTable = () => {
                             step="0.01"
                             value={editData.payment || ''}
                             onChange={(e) => setEditData({ ...editData, payment: parseFloat(e.target.value) || 0 })}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-green-500 text-gray-900"
                           />
                         ) : (
                           <span className="font-medium text-red-600">₵ {entry.payment.toFixed(2)}</span>
