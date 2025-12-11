@@ -6,14 +6,14 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBQWRHpDxxkPu9lu9W5NF39vfo89mFtafI",
-  authDomain: "anlogacashbook.firebaseapp.com",
-  databaseURL: "https://anlogacashbook-default-rtdb.firebaseio.com",
-  projectId: "anlogacashbook",
-  storageBucket: "anlogacashbook.firebasestorage.app",
-  messagingSenderId: "575478946401",
-  appId: "1:575478946401:web:807b86b247519d7ad8a820",
-  measurementId: "G-VG29026N10"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
