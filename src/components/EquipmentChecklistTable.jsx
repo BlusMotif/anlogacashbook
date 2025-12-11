@@ -59,7 +59,7 @@ const CHECKLIST_ITEMS = [
   'SHELVES CLEANLINESS'
 ];
 
-const EquipmentChecklistTable = () => {
+const EquipmentChecklistTable = ({ onEdit }) => {
   const { theme } = useTheme();
   const [entries, setEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);
@@ -184,35 +184,51 @@ const EquipmentChecklistTable = () => {
       else if (value === 'N/A') statusCounts['N/A']++;
     });
 
-    let detailsHtml = `
-      <div style="text-align: left; padding: 10px; max-height: 500px; overflow-y: auto;">
-        <p><strong>Date:</strong> ${formattedDate}</p>
-        <p><strong>Handing Over Crew:</strong> ${entry.handingOverCrew}</p>
-        <p><strong>Taking Over Crew:</strong> ${entry.takingOverCrew}</p>
-        <hr style="margin: 15px 0;">
-        <p><strong>Summary:</strong></p>
-        <p style="color: #16a34a;">✓ Perfect: ${statusCounts.P}</p>
-        <p style="color: #dc2626;">✗ Faulty: ${statusCounts.F}</p>
-        <p style="color: #6b7280;">― N/A: ${statusCounts['N/A']}</p>
-        <hr style="margin: 15px 0;">
-        <p><strong>Equipment Status:</strong></p>
-        <div style="max-height: 300px; overflow-y: auto; font-size: 0.9em;">
-    `;
-
-    CHECKLIST_ITEMS.forEach(item => {
+    const itemsHtml = CHECKLIST_ITEMS.map(item => {
       const status = checklistData[item] || 'Not Checked';
-      const statusColor = status === 'P' ? '#16a34a' : status === 'F' ? '#dc2626' : '#6b7280';
-      const statusText = status === 'P' ? 'Perfect' : status === 'F' ? 'Faulty' : status === 'N/A' ? 'N/A' : 'Not Checked';
-      detailsHtml += `<p><strong>${item}:</strong> <span style="color: ${statusColor};">${statusText}</span></p>`;
-    });
-
-    detailsHtml += `</div></div>`;
+      let statusColor = '#6b7280';
+      let statusText = 'Not Checked';
+      
+      if (status === 'P') {
+        statusColor = '#16a34a';
+        statusText = 'Perfect';
+      } else if (status === 'F') {
+        statusColor = '#dc2626';
+        statusText = 'Faulty';
+      } else if (status === 'N/A') {
+        statusColor = '#6b7280';
+        statusText = 'N/A';
+      }
+      
+      return `<div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #e5e7eb;">
+        <span style="font-weight: 500;">${item}</span>
+        <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span>
+      </div>`;
+    }).join('');
 
     Swal.fire({
-      title: 'Medical Equipment Checklist Details',
-      html: detailsHtml,
+      title: '<span style="font-size: 1.25rem;">Medical Equipment Checklist Details</span>',
+      html: `
+        <div style="text-align: left; font-size: 0.85em;">
+          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Date:</strong> ${formattedDate}</p>
+          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Handing Over Crew:</strong> ${entry.handingOverCrew}</p>
+          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Taking Over Crew:</strong> ${entry.takingOverCrew}</p>
+          
+          <div style="margin: 20px 0; padding: 15px; background: #f3f4f6; border-radius: 8px;">
+            <h4 style="margin-bottom: 10px; font-weight: bold; font-size: 0.95em;">Summary</h4>
+            <p style="margin: 5px 0; font-size: 0.85em;"><span style="color: #16a34a; font-weight: bold;">Perfect:</span> ${statusCounts.P}</p>
+            <p style="margin: 5px 0; font-size: 0.85em;"><span style="color: #dc2626; font-weight: bold;">Faulty:</span> ${statusCounts.F}</p>
+            <p style="margin: 5px 0; font-size: 0.85em;"><span style="color: #6b7280; font-weight: bold;">N/A:</span> ${statusCounts['N/A']}</p>
+          </div>
+          
+          <h4 style="margin-top: 20px; margin-bottom: 10px; font-weight: bold; font-size: 0.95em;">Equipment Items:</h4>
+          <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.8em;">
+            ${itemsHtml}
+          </div>
+        </div>
+      `,
       confirmButtonColor: '#16a34a',
-      width: '700px'
+      width: '600px'
     });
   };
 
@@ -428,25 +444,26 @@ const EquipmentChecklistTable = () => {
                       </div>
                     </td>
                     <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        {onEdit && (
+                          <button
+                            onClick={() => onEdit(entry)}
+                            className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-500"
+                          >
+                            Edit
+                          </button>
+                        )}
                         <button
                           onClick={() => handleViewDetails(entry)}
-                          className="text-green-600 hover:text-green-900"
-                          title="View Details"
+                          className="bg-green-700 hover:bg-green-800 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-green-700"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
+                          View
                         </button>
                         <button
                           onClick={() => handleDelete(entry.id, entry.date)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete"
+                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-medium transition duration-150 focus:outline-none focus:ring-1 focus:ring-red-500"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          Delete
                         </button>
                       </div>
                     </td>

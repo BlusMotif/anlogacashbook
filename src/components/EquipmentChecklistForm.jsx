@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ref, push } from 'firebase/database';
+import React, { useState, useEffect } from 'react';
+import { ref, push, set } from 'firebase/database';
 import { db, auth } from '../firebase';
 import Swal from 'sweetalert2';
 import { useTheme } from '../ThemeContext';
@@ -57,7 +57,7 @@ const CHECKLIST_ITEMS = [
   'SHELVES CLEANLINESS'
 ];
 
-const EquipmentChecklistForm = () => {
+const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) => {
   const { theme } = useTheme();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [handingOverCrew, setHandingOverCrew] = useState('');
@@ -70,6 +70,22 @@ const EquipmentChecklistForm = () => {
   }, {});
 
   const [checklistData, setChecklistData] = useState(initialChecklistState);
+
+  // Update form when editingEntry changes
+  useEffect(() => {
+    if (editingEntry) {
+      setDate(editingEntry.date || new Date().toISOString().split('T')[0]);
+      setHandingOverCrew(editingEntry.handingOverCrew || '');
+      setTakingOverCrew(editingEntry.takingOverCrew || '');
+      setChecklistData(editingEntry.checklistData || initialChecklistState);
+    } else {
+      // Reset form when not editing
+      setDate(new Date().toISOString().split('T')[0]);
+      setHandingOverCrew('');
+      setTakingOverCrew('');
+      setChecklistData(initialChecklistState);
+    }
+  }, [editingEntry]);
 
   const handleChecklistChange = (item, value) => {
     setChecklistData(prev => ({
@@ -133,21 +149,32 @@ const EquipmentChecklistForm = () => {
         timestamp: Date.now()
       };
 
-      const entriesRef = ref(db, 'equipmentChecklist');
-      await push(entriesRef, entryData);
+      const entriesRef = editingEntry
+        ? ref(db, `equipmentChecklist/${editingEntry.id}`)
+        : ref(db, 'equipmentChecklist');
+      
+      if (editingEntry) {
+        await set(entriesRef, entryData);
+      } else {
+        await push(entriesRef, entryData);
+      }
       
       Swal.fire({
         title: 'Success!',
-        text: 'Shift inspection checklist submitted successfully',
+        text: `Shift inspection checklist ${editingEntry ? 'updated' : 'submitted'} successfully`,
         icon: 'success',
         confirmButtonColor: '#16a34a'
       });
 
       // Reset form
-      setDate(new Date().toISOString().split('T')[0]);
-      setHandingOverCrew('');
-      setTakingOverCrew('');
-      setChecklistData(initialChecklistState);
+      if (!editingEntry) {
+        setDate(new Date().toISOString().split('T')[0]);
+        setHandingOverCrew('');
+        setTakingOverCrew('');
+        setChecklistData(initialChecklistState);
+      } else if (onCancelEdit) {
+        onCancelEdit();
+      }
     } catch (error) {
       console.error('Error saving checklist:', error);
       Swal.fire({
@@ -256,13 +283,22 @@ const EquipmentChecklistForm = () => {
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-center pt-4">
+        <div className="flex justify-center gap-4 pt-4">
+          {editingEntry && onCancelEdit && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="bg-gray-500 hover:bg-gray-600 text-white py-3 px-8 rounded-lg font-medium transition-colors duration-200"
+            >
+              Cancel
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading}
             className="bg-green-600 hover:bg-green-700 text-white py-3 px-8 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Submitting...' : 'Submit Checklist'}
+            {loading ? (editingEntry ? 'Updating...' : 'Submitting...') : (editingEntry ? 'Update Checklist' : 'Submit Checklist')}
           </button>
         </div>
       </form>

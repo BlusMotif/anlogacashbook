@@ -28,8 +28,8 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-500 via-emerald-600 to-teal-500 flex items-center justify-center p-4">
       <div className="bg-white bg-opacity-10 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white border-opacity-20">
         <div className="text-center mb-6">
-          <img src="/logo.png" alt="Anloga Ambulance Station" className="h-16 mx-auto mb-4" onError={(e) => e.target.style.display = 'none'} />
-          <h2 className="text-3xl font-bold text-white">Welcome to Anloga Ambulance Cashbook</h2>
+          <img src="/RMS logo.png" alt="" className="h-16 mx-auto mb-4" onError={(e) => e.target.style.display = 'none'} />
+          <h2 className="text-3xl font-bold text-white">Login</h2>
         </div>
         <form onSubmit={handleLogin}>
           <div className="mb-4">

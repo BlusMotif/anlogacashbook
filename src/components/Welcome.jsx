@@ -58,8 +58,8 @@ const Welcome = () => {
         {/* Logo */}
         <div className="mb-8">
           <img
-            src="/logo.png"
-            alt="Anloga Ambulance Station"
+            src="/RMS logo.png"
+            alt=""
             className="h-20 mx-auto mb-6"
             onError={(e) => e.target.style.display = 'none'}
           />
@@ -67,15 +67,6 @@ const Welcome = () => {
 
         {/* Welcome Content */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Welcome Back!
-          </h1>
-          <p className="text-xl text-white text-opacity-90 mb-2">
-            Anloga Ambulance Station
-          </p>
-          <p className="text-white text-opacity-80">
-            Timely Care Saves Lives
-          </p>
         </div>
 
         {/* Loading Animation */}
@@ -101,7 +92,7 @@ const Welcome = () => {
         {/* Footer */}
         <div className="mt-8 pt-6 border-t border-white border-opacity-20">
           <p className="text-white text-opacity-60 text-sm">
-            © 2025 Anloga Ambulance Station
+            © 2025
           </p>
         </div>
       </div>

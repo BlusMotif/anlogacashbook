@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ref, push } from 'firebase/database';
+import React, { useState, useEffect } from 'react';
+import { ref, push, set } from 'firebase/database';
 import { db, auth } from '../firebase';
 import Swal from 'sweetalert2';
 import { useTheme } from '../ThemeContext';
@@ -47,7 +47,7 @@ const INSPECTION_ITEMS = [
   'TFT COLOUR DISPLAY'
 ];
 
-const VehicleInspectionForm = () => {
+const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => {
   const { theme } = useTheme();
   const [date, setDate] = useState('');
   const [watchCode, setWatchCode] = useState('');
@@ -62,6 +62,24 @@ const VehicleInspectionForm = () => {
   }, {});
 
   const [checklistData, setChecklistData] = useState(initialChecklistState);
+
+  // Update form when editingEntry changes
+  useEffect(() => {
+    if (editingEntry) {
+      setDate(editingEntry.date || '');
+      setWatchCode(editingEntry.watchCode || '');
+      setHandingOverCrew(editingEntry.handingOverCrew || '');
+      setTakingOverCrew(editingEntry.takingOverCrew || '');
+      setChecklistData(editingEntry.checklistData || initialChecklistState);
+    } else {
+      // Reset form when not editing
+      setDate('');
+      setWatchCode('');
+      setHandingOverCrew('');
+      setTakingOverCrew('');
+      setChecklistData(initialChecklistState);
+    }
+  }, [editingEntry]);
 
   const handleChecklistChange = (item, value) => {
     setChecklistData(prev => ({
@@ -97,8 +115,11 @@ const VehicleInspectionForm = () => {
         throw new Error('No authenticated user');
       }
 
-      const inspectionRef = ref(db, 'ambulanceInspection');
-      await push(inspectionRef, {
+      const inspectionRef = editingEntry
+        ? ref(db, `ambulanceInspection/${editingEntry.id}`)
+        : ref(db, 'ambulanceInspection');
+      
+      const inspectionData = {
         date,
         watchCode,
         checklistData,
@@ -106,21 +127,31 @@ const VehicleInspectionForm = () => {
         takingOverCrew,
         userId: user.uid,
         timestamp: Date.now()
-      });
+      };
+
+      if (editingEntry) {
+        await set(inspectionRef, inspectionData);
+      } else {
+        await push(inspectionRef, inspectionData);
+      }
 
       Swal.fire({
         title: 'Success!',
-        text: 'Vehicle inspection sheet submitted successfully',
+        text: `Vehicle inspection sheet ${editingEntry ? 'updated' : 'submitted'} successfully`,
         icon: 'success',
         confirmButtonColor: '#16a34a'
       });
 
       // Reset form
-      setDate('');
-      setWatchCode('');
-      setHandingOverCrew('');
-      setTakingOverCrew('');
-      setChecklistData(initialChecklistState);
+      if (!editingEntry) {
+        setDate('');
+        setWatchCode('');
+        setHandingOverCrew('');
+        setTakingOverCrew('');
+        setChecklistData(initialChecklistState);
+      } else if (onCancelEdit) {
+        onCancelEdit();
+      }
     } catch (error) {
       console.error('Error submitting vehicle inspection:', error);
       Swal.fire({
@@ -248,13 +279,22 @@ const VehicleInspectionForm = () => {
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-4">
+          {editingEntry && onCancelEdit && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
+            >
+              Cancel
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading}
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Submitting...' : 'Submit Inspection Sheet'}
+            {loading ? (editingEntry ? 'Updating...' : 'Submitting...') : (editingEntry ? 'Update Inspection Sheet' : 'Submit Inspection Sheet')}
           </button>
         </div>
       </form>

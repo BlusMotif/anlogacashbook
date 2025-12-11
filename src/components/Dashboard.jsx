@@ -60,19 +60,41 @@ const AssetRegisterDashboard = () => {
 };
 
 const EquipmentChecklistDashboard = () => {
+  const [editingEntry, setEditingEntry] = useState(null);
+
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+  };
+
   return (
     <div className="space-y-6">
-      <EquipmentChecklistForm />
-      <EquipmentChecklistTable />
+      <EquipmentChecklistForm editingEntry={editingEntry} onCancelEdit={handleCancelEdit} />
+      <EquipmentChecklistTable onEdit={handleEdit} />
     </div>
   );
 };
 
 const VehicleInspectionDashboard = () => {
+  const [editingEntry, setEditingEntry] = useState(null);
+
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+  };
+
   return (
     <div className="space-y-6">
-      <VehicleInspectionForm />
-      <VehicleInspectionTable />
+      <VehicleInspectionForm editingEntry={editingEntry} onCancelEdit={handleCancelEdit} />
+      <VehicleInspectionTable onEdit={handleEdit} />
     </div>
   );
 };
@@ -210,9 +232,6 @@ const Dashboard = () => {
                     </svg>
                   </div>
                 </div>
-                <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  Anloga Ambulance Station
-                </h1>
                 <p className={`text-xl md:text-2xl font-semibold mb-3 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
                   Management System Dashboard
                 </p>
@@ -383,7 +402,7 @@ const Dashboard = () => {
               {/* Footer Info */}
               <div className="text-center mt-12">
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Select a system above to begin managing your operations • Timely Care Saves Lives
+                  Select a system above to begin managing your operations
                 </p>
               </div>
             </div>
@@ -393,7 +412,6 @@ const Dashboard = () => {
         return (
           <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 space-y-6 sm:space-y-8">
             <div className="text-center mb-6 sm:mb-8">
-              <h2 className={`text-2xl sm:text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-2`}>Welcome to Fuel Support Dashboard</h2>
               <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base px-4`}>Choose a section to manage your fuel support operations</p>
             </div>
             
@@ -473,7 +491,6 @@ const Dashboard = () => {
         return (
           <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 space-y-6 sm:space-y-8">
             <div className="text-center mb-6 sm:mb-8">
-              <h2 className={`text-2xl sm:text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-2`}>Welcome to GOCARD Dashboard</h2>
               <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base px-4`}>Choose a section to manage your GOCARD operations</p>
             </div>
 
@@ -574,8 +591,7 @@ const Dashboard = () => {
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
         <div className="flex items-center justify-center h-16 bg-gradient-to-r from-green-600 to-emerald-600">
-          <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10" onError={(e) => e.target.style.display = 'none'} />
-          <h1 className="text-white text-sm font-bold ml-2">Anloga Ambulance Station</h1>
+          <img src="/RMS logo.png" alt="" className="h-10" onError={(e) => e.target.style.display = 'none'} />
         </div>
         <nav className="mt-8">
           <div className={`px-4 py-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} font-medium`}>Navigation</div>
@@ -651,8 +667,7 @@ const Dashboard = () => {
               </button>
 
               <div className="flex flex-col items-center">
-                <img src="/logo.png" alt="Anloga Ambulance Station" className="h-10 sm:h-12" onError={(e) => e.target.style.display = 'none'} />
-                <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-xs sm:text-sm mt-1`}>Timely Care Saves Lives</p>
+                <img src={theme === 'dark' ? "/RMS logo.png" : "/RMS logo2.png"} alt="" className="h-10 sm:h-12" onError={(e) => e.target.style.display = 'none'} />
               </div>
 
               <button
@@ -675,7 +690,7 @@ const Dashboard = () => {
             {/* Page Title */}
             <div className="text-center">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                {currentPage === 'welcome' ? 'Welcome' :
+                {currentPage === 'welcome' ? '' :
                  currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                  currentPage === 'fuel-support' ? 'Fuel Support' :
                  currentPage === 'entries' ? 'Your Entries' :
@@ -703,10 +718,10 @@ const Dashboard = () => {
             </button>
 
             <div className="flex flex-col items-center flex-1">
-              <div className="flex items-center justify-center">
-                <img src="/logo.png" alt="Anloga Ambulance Station" className="h-12 mr-4" onError={(e) => e.target.style.display = 'none'} />
+              <div className="flex flex-col items-center justify-center">
+                <img src={theme === 'dark' ? "/RMS logo.png" : "/RMS logo2.png"} alt="" className="h-12 mb-4" onError={(e) => e.target.style.display = 'none'} />
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  {currentPage === 'welcome' ? 'Welcome' :
+                  {currentPage === 'welcome' ? '' :
                    currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
                    currentPage === 'fuel-support' ? 'Fuel Support' :
                    currentPage === 'entries' ? 'Your Entries' :
@@ -720,7 +735,6 @@ const Dashboard = () => {
                    'Settings'}
                 </h1>
               </div>
-              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm mt-2`}>Timely Care Saves Lives</p>
             </div>
 
             <button
