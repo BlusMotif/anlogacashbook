@@ -6,7 +6,7 @@ import { useTheme } from '../ThemeContext';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-// Ambulance inspection items
+// Vehicle inspection items
 const INSPECTION_ITEMS = [
   'TYRE',
   'WHEEL CAP',
@@ -317,7 +317,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
     <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} p-6 rounded-lg shadow-md mt-6`}>
       <div className="flex justify-between items-center mb-6">
         <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-          Ambulance Inspection Sheets
+          Vehicle Inspection Sheet
         </h2>
         <button
           onClick={exportToExcel}

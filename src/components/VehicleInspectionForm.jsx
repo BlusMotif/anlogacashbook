@@ -4,7 +4,7 @@ import { db, auth } from '../firebase';
 import Swal from 'sweetalert2';
 import { useTheme } from '../ThemeContext';
 
-// Ambulance inspection items
+// Vehicle inspection items
 const INSPECTION_ITEMS = [
   'TYRE',
   'WHEEL CAP',
@@ -249,7 +249,7 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
         {/* Inspection Checklist */}
         <div>
           <h3 className={`text-lg font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-            Ambulance Inspection Items
+            Vehicle Inspection Items
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {INSPECTION_ITEMS.map((item, index) => (

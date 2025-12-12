@@ -24,17 +24,17 @@ export default defineConfig({
             src: '/RMS logo.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             src: '/RMS logo2.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             src: '/logo.png',
-            sizes: 'any',
+            sizes: '144x144',
             type: 'image/png',
             purpose: 'any'
           }
