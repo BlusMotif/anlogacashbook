@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'RMS - Record Management System',
         short_name: 'RMS',
         description: 'Record Management System for efficient data tracking and management',
-        theme_color: '#2563eb',
-        background_color: '#ffffff',
+        theme_color: '#10b981',
+        background_color: '#10b981',
         display: 'standalone',
         start_url: '/',
         icons: [

@@ -4,8 +4,8 @@
   "description": "Record Management System for efficient data tracking and management",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#10b981",
+  "theme_color": "#10b981",
   "orientation": "portrait-primary",
   "icons": [
     {
