@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
 import Dashboard from './components/Dashboard';
+import InstallPWA from './components/InstallPWA';
 import { ThemeProvider } from './ThemeContext';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
         </Routes>
+        <InstallPWA />
       </BrowserRouter>
     </ThemeProvider>
   );
