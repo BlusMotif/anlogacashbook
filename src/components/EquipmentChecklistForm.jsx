@@ -12,47 +12,50 @@ const CHECKLIST_ITEMS = [
   'INFUSION PUMP VOLUMETRIC',
   'KED',
   'PORTABLE VENTILATOR SET + O2',
-  'OXYGEN CYLINDER',
-  'SUCTION MACHINE PORTABLE',
-  'SUCTION MACHINE MAIN',
-  'BAG VALVE MASK ADULT',
-  'BAG VALVE MASK PEDIATRIC',
-  'BAG VALVE MASK NEONATAL',
-  'ADULT MASK',
-  'PEDIATRIC MASK',
-  'NEONATAL MASK',
-  'NASAL CANNULA ADULT',
-  'NASAL CANNULA PEDIATRIC',
-  'NRM ADULT',
-  'NRM PEDIATRIC',
-  'NEBULIZER SET',
-  'BLOOD PRESSURE APPARATUS',
-  'STETHOSCOPE',
-  'GLUCOMETER',
-  'THERMOMETER',
-  'LARYNGOSCOPE SET',
-  'MAGILL FORCEPS',
-  'OXYGEN HUMIDIFIER',
-  'OROPHARYNGEAL AIRWAY SET',
-  'NASOPHARYNGEAL AIRWAY SET',
-  'C-COLLAR SET',
-  'BURN SHEET',
-  'FIRE EXTINGUISHER',
-  'SPIDER STRAP',
-  'TRAUMA DRESSINGS',
-  'ABDOMINAL PAD',
-  'ROLLER BANDAGE',
-  'ELASTIC BANDAGE',
-  'COTTON ROLL',
-  'GAUZE',
-  'FLASHLIGHT',
-  'SCISSORS',
+  'O2 CYLINDERS (2.10L, 1 PORTABLE)',
+  'MANUAL ASPIRATOR / SUCTION',
+  'PORTABLE SUCTION UNIT',
+  'TRIAGE TAG (CARDS / TAPE ROLLS)',
+  'REGULATOR & HUMIDIFIER',
+  'AED W / ADULT & INFANT SET',
+  'LONG & SHORT SPLINTS - ALL AGES',
+  'AIR SPLINTS',
+  'TRACTION SPLINT - SET',
+  'INTUBATION SET',
+  'BAG VALVE MASK - ALL SIZES',
+  'PLASTIC ARMS SLINGS - ALL SIZES',
+  'PROTECTIVE HELMET / EYE WEAR',
+  'HIGH VISIBILITY CLOTHING',
+  'MOUTH VALVE MASK - ALL SIZES',
   'PENLIGHT',
-  'HAND SANITIZER',
-  'GLOVES',
-  'FACE SHIELD',
-  'SURGICAL MASKS',
-  'PPE SETS',
+  'BP APARATUS - SET',
+  'GLUCOMETER',
+  'PULSE AUXIMETER',
+  'THERMOMETER - NON CONTACT',
+  'NEONATE THERMOMETER',
+  'CLINICAL THERMOMETER',
+  'FORCEPTS',
+  'OROPHARYNGEAL AIRWAYS',
+  'NASOPHARYNGEAL AIRWAYS',
+  'POLE STRETCHRE - FOLDABLE',
+  'SIMPLE FACE MASK',
+  'NASAL CANNULAE',
+  'NONREBREATHER MASK',
+  'BLANKET',
+  'HEAD IMMOBILIZER',
+  'SPINE BOARD + FASTENERS - ADULT',
+  'SPINE BOARD + FASTENERS - PED',
+  'PATIENT TROLLEY WITH PILLOW',
+  'SCOOPER STRECTURE',
+  'STAIR / CARRY CHAIR',
+  'CERVICAL COLLARS',
+  'PLASTERS - VARIOUS SIZES',
+  'GAUZE BANDAGE - VARIOUS SIZES',
+  'TRIANGULAR BANDAGES',
+  'EXAM GLOVES - SMALL',
+  'EXAM GLOVES - MEDIUM',
+  'EXAM GLOVES - LARGE',
+  'PARAMEDIC EMERGENCY BAG - SET',
   'FLOOR CLEANLINESS',
   'SHELVES CLEANLINESS'
 ];
@@ -216,7 +219,7 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
 
           <div>
             <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Handing Over Crew *
+              INITIALS - HANDING OVER CREW *
             </label>
             <input
               type="text"
@@ -234,7 +237,7 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
 
           <div>
             <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Taking Over Crew *
+              INITIALS - TAKING OVER CREW *
             </label>
             <input
               type="text"

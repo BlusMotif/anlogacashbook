@@ -1,7 +1,7 @@
 {
-  "name": "RMS - Record Management System",
+  "name": "RMS - Records Management System",
   "short_name": "RMS",
-  "description": "Record Management System for efficient data tracking and management",
+  "description": "Records Management System for efficient data tracking and management",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#10b981",

@@ -87,7 +87,7 @@ const InstallPWA = () => {
         
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-            Install RMS - Record Management System {!deferredPrompt && <span className="text-xs text-orange-600">(Preview Mode)</span>}
+            Install RMS - Records Management System {!deferredPrompt && <span className="text-xs text-orange-600">(Preview Mode)</span>}
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
             {deferredPrompt 
