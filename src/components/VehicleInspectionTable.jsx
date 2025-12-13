@@ -13,7 +13,7 @@ const INSPECTION_ITEMS = [
   'WHEEL CAP',
   'RIMS 1234',
   'DOOR GLASS (QUARTER)',
-  'DOOR LEVERS / LOCKS',
+  'DOOR LEAVERS / LOCKS',
   'WIND SCREEN',
   'WIND SCREEN SPRAY',
   'WIPERS',
@@ -21,7 +21,7 @@ const INSPECTION_ITEMS = [
   'ENGINE (CLEANLINESS)',
   'ENGINE OIL',
   'WATER LEVEL',
-  'FUEL LEVEL F, 1/2, 3/4 E',
+  'FUEL LEVEL F, 1/2, 3/4, E',
   'OTHER FLUIDS / LUBRICANT',
   'EMERGENCY HAMMER / SEAT BELT CUTTER',
   'INTERIOR (CLEANLINESS)',
@@ -46,7 +46,7 @@ const INSPECTION_ITEMS = [
   'MOUNTED GOTA RADIO',
   'INTERCOM / TELEPHONE',
   'AIR CONDITIONING (DRIVER / PATIENT COMPARTMENT)',
-  'TFT COLOR DISPLAY',
+  'TFT COLOUR DISPLAY',
   'ELECTRIC LAMP – PORTABLE',
   'ALLEN KEY - SET',
   'LOG BOOK',
@@ -205,7 +205,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
       const worksheet = workbook.addWorksheet('Vehicle Inspection');
 
       // Create header row with Date, Watch Code first, inspection items, then crew columns last
-      const headers = ['Date', 'Watch Code', ...INSPECTION_ITEMS, 'INITIALS - HANDING OVER CREW', 'INITIALS - TAKING OVER CREW'];
+      const headers = ['DATE', 'WATCH CODE', ...INSPECTION_ITEMS, 'INITIALS - HANDING OVER CREW', 'INITIALS - TAKING OVER CREW'];
       worksheet.addRow(headers);
 
       // Style header row
@@ -374,10 +374,10 @@ const VehicleInspectionTable = ({ onEdit }) => {
           <thead className={theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}>
             <tr>
               <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Date
+                DATE
               </th>
               <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Watch Code
+                WATCH CODE
               </th>
               <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 INITIALS - HANDING OVER CREW
