@@ -6,46 +6,57 @@ import { useTheme } from '../ThemeContext';
 
 // Vehicle inspection items
 const INSPECTION_ITEMS = [
-  'TYRE',
+  'KEYS',
+  'TYRE 12345',
   'WHEEL CAP',
+  'RIMS 1234',
   'DOOR GLASS (QUARTER)',
-  'DOOR LEVERS-LOCKS',
-  'WIND SCREEN GLASS',
+  'DOOR LEVERS / LOCKS',
+  'WIND SCREEN',
   'WIND SCREEN SPRAY',
   'WIPERS',
   'SIDE MIRRORS',
-  'ENGINE CLEANLINESS',
+  'ENGINE (CLEANLINESS)',
   'ENGINE OIL',
   'WATER LEVEL',
-  'FUEL LEVEL',
-  'OTHER FLUIDS-LUBRICATION',
-  'EMERGENCY HAMMER - SEATBELT CUTTER',
-  'OXYGEN CYLINDER',
+  'FUEL LEVEL F, 1/2, 3/4 E',
+  'OTHER FLUIDS / LUBRICANT',
+  'EMERGENCY HAMMER / SEAT BELT CUTTER',
+  'INTERIOR (CLEANLINESS)',
   'SEAT BELTS',
   'SEATS',
   'FLOOR MAT',
   'SIREN',
   'BEACON LIGHT',
   'FOG LIGHT',
-  'PARKING-REAR M LIGHT',
+  'BRAKES HAND / FOOT',
+  'PARKING / BRAKE LIGHT',
   'INDICATORS',
   'WARNING TRIANGLE',
-  'DOOR-LIGHT',
-  'FLASHLIGHT',
-  'WORKABLE BATTERIES',
-  'NIGHT DRIVING GOGGLES',
-  'FIRE EXTINGUISHER',
-  'PORTABLE FIRST AID KIT',
-  'MOUNTED COPRA RADIO',
-  'INTERCOM-TELEPHONE',
-  'PATIENT COMPARTMENT INTERIOR CLEANLINESS',
-  'ELECTRICAL DISPLAY',
+  'UV TORCH WITH CHARGEABLE BATTRIES',
+  'FLASH LIGHT',
+  'WORKING LIGHT',
+  'WHEEL SPANNER / HYDRAULIC JEK',
+  'NIGHT DRIVING GOGGLE',
+  'FIRE EXTINGUISHERS (2)',
+  'PORTABLE TYRE INFLATOR',
+  'BODY FOR DENTS / SCRATCHES',
+  'MOUNTED GOTA RADIO',
+  'INTERCOM / TELEPHONE',
+  'AIR CONDITIONING (DRIVER / PATIENT COMPARTMENT)',
+  'TFT COLOR DISPLAY',
+  'ELECTRIC LAMP – PORTABLE',
+  'ALLEN KEY - SET',
   'LOG BOOK',
-  "DRIVER'S MANUAL",
-  'ALLEN KEY SET',
-  'KEYS',
-  'TFT COLOUR DISPLAY'
+  'DRIVERS MANUAL'
 ];
+
+// Sanitize keys for Firebase compatibility
+const sanitizeKey = (str) => str.replace(/[.#$/\[\]]/g, '_');
+const itemKeyMap = INSPECTION_ITEMS.reduce((acc, item) => {
+  acc[item] = sanitizeKey(item);
+  return acc;
+}, {});
 
 const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => {
   const { theme } = useTheme();
@@ -57,7 +68,7 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
 
   // Initialize checklist data with all items set to empty
   const initialChecklistState = INSPECTION_ITEMS.reduce((acc, item) => {
-    acc[item] = '';
+    acc[itemKeyMap[item]] = '';
     return acc;
   }, {});
 
@@ -84,7 +95,7 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
   const handleChecklistChange = (item, value) => {
     setChecklistData(prev => ({
       ...prev,
-      [item]: value
+      [itemKeyMap[item]]: value
     }));
   };
 
@@ -92,7 +103,7 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
     e.preventDefault();
 
     // Validate that all items have been selected
-    const emptyItems = INSPECTION_ITEMS.filter(item => !checklistData[item] || checklistData[item] === '');
+    const emptyItems = INSPECTION_ITEMS.filter(item => !checklistData[itemKeyMap[item]] || checklistData[itemKeyMap[item]] === '');
     
     if (emptyItems.length > 0) {
       const itemsList = emptyItems.slice(0, 5).join(', ');
@@ -195,23 +206,27 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Watch Code <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <select
               value={watchCode}
               onChange={(e) => setWatchCode(e.target.value)}
-              placeholder="Enter watch code"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
                 theme === 'dark'
                   ? 'bg-gray-700 border-gray-600 text-white'
                   : 'bg-white border-gray-300 text-gray-900'
               }`}
               required
-            />
+            >
+              <option value="">Select watch code</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+            </select>
           </div>
 
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Handing Over Crew <span className="text-red-500">*</span>
+              INITIALS - HANDING OVER CREW <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -229,7 +244,7 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
 
           <div>
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Taking Over Crew <span className="text-red-500">*</span>
+              INITIALS - TAKING OVER CREW <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -258,13 +273,13 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
                   {item} <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={checklistData[item] || ''}
+                  value={checklistData[itemKeyMap[item]] || ''}
                   onChange={(e) => handleChecklistChange(item, e.target.value)}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white'
                       : 'bg-white border-gray-300 text-gray-900'
-                  } ${!checklistData[item] ? 'border-red-300' : ''}`}
+                  } ${!checklistData[itemKeyMap[item]] ? 'border-red-300' : ''}`}
                   required
                 >
                   <option value="">Select *</option>

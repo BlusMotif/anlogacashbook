@@ -8,46 +8,57 @@ import { saveAs } from 'file-saver';
 
 // Vehicle inspection items
 const INSPECTION_ITEMS = [
-  'TYRE',
+  'KEYS',
+  'TYRE 12345',
   'WHEEL CAP',
+  'RIMS 1234',
   'DOOR GLASS (QUARTER)',
-  'DOOR LEVERS-LOCKS',
-  'WIND SCREEN GLASS',
+  'DOOR LEVERS / LOCKS',
+  'WIND SCREEN',
   'WIND SCREEN SPRAY',
   'WIPERS',
   'SIDE MIRRORS',
-  'ENGINE CLEANLINESS',
+  'ENGINE (CLEANLINESS)',
   'ENGINE OIL',
   'WATER LEVEL',
-  'FUEL LEVEL',
-  'OTHER FLUIDS-LUBRICATION',
-  'EMERGENCY HAMMER - SEATBELT CUTTER',
-  'OXYGEN CYLINDER',
+  'FUEL LEVEL F, 1/2, 3/4 E',
+  'OTHER FLUIDS / LUBRICANT',
+  'EMERGENCY HAMMER / SEAT BELT CUTTER',
+  'INTERIOR (CLEANLINESS)',
   'SEAT BELTS',
   'SEATS',
   'FLOOR MAT',
   'SIREN',
   'BEACON LIGHT',
   'FOG LIGHT',
-  'PARKING-REAR M LIGHT',
+  'BRAKES HAND / FOOT',
+  'PARKING / BRAKE LIGHT',
   'INDICATORS',
   'WARNING TRIANGLE',
-  'DOOR-LIGHT',
-  'FLASHLIGHT',
-  'WORKABLE BATTERIES',
-  'NIGHT DRIVING GOGGLES',
-  'FIRE EXTINGUISHER',
-  'PORTABLE FIRST AID KIT',
-  'MOUNTED COPRA RADIO',
-  'INTERCOM-TELEPHONE',
-  'PATIENT COMPARTMENT INTERIOR CLEANLINESS',
-  'ELECTRICAL DISPLAY',
+  'UV TORCH WITH CHARGEABLE BATTRIES',
+  'FLASH LIGHT',
+  'WORKING LIGHT',
+  'WHEEL SPANNER / HYDRAULIC JEK',
+  'NIGHT DRIVING GOGGLE',
+  'FIRE EXTINGUISHERS (2)',
+  'PORTABLE TYRE INFLATOR',
+  'BODY FOR DENTS / SCRATCHES',
+  'MOUNTED GOTA RADIO',
+  'INTERCOM / TELEPHONE',
+  'AIR CONDITIONING (DRIVER / PATIENT COMPARTMENT)',
+  'TFT COLOR DISPLAY',
+  'ELECTRIC LAMP – PORTABLE',
+  'ALLEN KEY - SET',
   'LOG BOOK',
-  "DRIVER'S MANUAL",
-  'ALLEN KEY SET',
-  'KEYS',
-  'TFT COLOUR DISPLAY'
+  'DRIVERS MANUAL'
 ];
+
+// Sanitize keys for Firebase compatibility
+const sanitizeKey = (str) => str.replace(/[.#$/\[\]]/g, '_');
+const itemKeyMap = INSPECTION_ITEMS.reduce((acc, item) => {
+  acc[item] = sanitizeKey(item);
+  return acc;
+}, {});
 
 const VehicleInspectionTable = ({ onEdit }) => {
   const { theme } = useTheme();
@@ -147,7 +158,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
     });
 
     const itemsHtml = INSPECTION_ITEMS.map(item => {
-      const status = checklistData[item] || 'Not Set';
+      const status = checklistData[itemKeyMap[item]] || 'Not Set';
       let statusColor = 'text-gray-600';
       if (status === 'OK') statusColor = 'text-green-600';
       else if (status === 'NF') statusColor = 'text-orange-600';
@@ -166,8 +177,8 @@ const VehicleInspectionTable = ({ onEdit }) => {
         <div style="text-align: left; font-size: 0.85em;">
           <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Date:</strong> ${new Date(entry.date).toLocaleDateString('en-GB')}</p>
           <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Watch Code:</strong> ${entry.watchCode || 'N/A'}</p>
-          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Handing Over Crew:</strong> ${entry.handingOverCrew || 'N/A'}</p>
-          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Taking Over Crew:</strong> ${entry.takingOverCrew || 'N/A'}</p>
+          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>INITIALS - HANDING OVER CREW:</strong> ${entry.handingOverCrew || 'N/A'}</p>
+          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>INITIALS - TAKING OVER CREW:</strong> ${entry.takingOverCrew || 'N/A'}</p>
           
           <div style="margin: 20px 0; padding: 15px; background: #f3f4f6; border-radius: 8px;">
             <h4 style="margin-bottom: 10px; font-weight: bold; font-size: 0.95em;">Summary</h4>
@@ -194,7 +205,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
       const worksheet = workbook.addWorksheet('Vehicle Inspection');
 
       // Create header row with Date, Watch Code first, inspection items, then crew columns last
-      const headers = ['Date', 'Watch Code', ...INSPECTION_ITEMS, 'Handing Over Crew', 'Taking Over Crew'];
+      const headers = ['Date', 'Watch Code', ...INSPECTION_ITEMS, 'INITIALS - HANDING OVER CREW', 'INITIALS - TAKING OVER CREW'];
       worksheet.addRow(headers);
 
       // Style header row
@@ -220,8 +231,8 @@ const VehicleInspectionTable = ({ onEdit }) => {
       for (let i = 3; i <= INSPECTION_ITEMS.length + 2; i++) {
         worksheet.getColumn(i).width = 4;
       }
-      worksheet.getColumn(INSPECTION_ITEMS.length + 3).width = 6; // Handing Over Crew - slim
-      worksheet.getColumn(INSPECTION_ITEMS.length + 4).width = 6; // Taking Over Crew - slim
+      worksheet.getColumn(INSPECTION_ITEMS.length + 3).width = 6; // INITIALS - HANDING OVER CREW - slim
+      worksheet.getColumn(INSPECTION_ITEMS.length + 4).width = 6; // INITIALS - TAKING OVER CREW - slim
 
       // Add data rows
       filteredEntries.forEach(entry => {
@@ -231,7 +242,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
         const rowData = [
           formattedDate,
           entry.watchCode || '',
-          ...INSPECTION_ITEMS.map(item => checklistData[item] || ''),
+          ...INSPECTION_ITEMS.map(item => checklistData[itemKeyMap[item]] || ''),
           entry.handingOverCrew || '',
           entry.takingOverCrew || ''
         ];
@@ -242,7 +253,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
         INSPECTION_ITEMS.forEach((item, index) => {
           const cellIndex = index + 3; // Starting after Date, Watch Code
           const cell = dataRow.getCell(cellIndex);
-          const value = checklistData[item];
+          const value = checklistData[itemKeyMap[item]];
           
           if (value === 'OK') {
             cell.fill = {
@@ -369,10 +380,10 @@ const VehicleInspectionTable = ({ onEdit }) => {
                 Watch Code
               </th>
               <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Handing Over Crew
+                INITIALS - HANDING OVER CREW
               </th>
               <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Taking Over Crew
+                INITIALS - TAKING OVER CREW
               </th>
               <th className={`px-4 py-3 text-left text-sm font-semibold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Status
