@@ -13,7 +13,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/welcome');
+      navigate('/dashboard');
     } catch (err) {
       Swal.fire({
         icon: 'error',
