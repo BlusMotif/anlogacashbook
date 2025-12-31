@@ -41,6 +41,11 @@ const CashbookTable = () => {
   const mobileTableRef = React.useRef(null);
   const desktopTableRef = React.useRef(null);
 
+  // Memoized current balance to prevent unnecessary re-calculations
+  const currentBalance = React.useMemo(() => {
+    return entries.length > 0 ? entries[entries.length - 1].balance : 0;
+  }, [entries]);
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -499,7 +504,7 @@ const CashbookTable = () => {
           <div>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Current Balance</p>
             <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-              GH₵ {filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].balance.toFixed(2) : '0.00'}
+              GH₵ {currentBalance.toFixed(2)}
             </p>
           </div>
         </div>

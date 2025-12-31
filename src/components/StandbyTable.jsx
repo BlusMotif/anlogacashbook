@@ -20,6 +20,7 @@ const StandbyTable = ({ onEdit }) => {
   const [entries, setEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
+  const [sortBy, setSortBy] = useState('recent-entry');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -32,8 +33,6 @@ const StandbyTable = ({ onEdit }) => {
           id,
           ...entry
         }));
-        // Sort by timestamp, newest first
-        entriesArray.sort((a, b) => b.timestamp - a.timestamp);
         setEntries(entriesArray);
       } else {
         setEntries([]);
@@ -46,18 +45,46 @@ const StandbyTable = ({ onEdit }) => {
   // Get unique years from entries
   const years = ['all', ...Array.from(new Set(entries.map(entry => new Date(entry.date).getFullYear()))).sort((a, b) => b - a)];
 
-  // Filter entries based on search term and selected year
-  const filteredEntries = entries.filter(entry => {
-    const matchesSearch = 
-      entry.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.watch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.date?.includes(searchTerm);
-    
-    const matchesYear = selectedYear === 'all' || new Date(entry.date).getFullYear().toString() === selectedYear;
-    
-    return matchesSearch && matchesYear;
-  });
+  // Filter and sort entries
+  const filteredEntries = React.useMemo(() => {
+    let filtered = entries.filter(entry => {
+      const matchesSearch = 
+        entry.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.watch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.date?.includes(searchTerm);
+      
+      const matchesYear = selectedYear === 'all' || new Date(entry.date).getFullYear().toString() === selectedYear;
+      
+      return matchesSearch && matchesYear;
+    });
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'recent-entry':
+          return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+        case 'oldest-entry':
+          return new Date(a.timestamp || a.date) - new Date(b.timestamp || b.date);
+        case 'recent-edit':
+          // If both have updatedAt, sort by that; otherwise, prefer entries with updatedAt
+          if (a.updatedAt && b.updatedAt) {
+            return b.updatedAt - a.updatedAt;
+          } else if (a.updatedAt) {
+            return -1; // a comes first (has been edited)
+          } else if (b.updatedAt) {
+            return 1; // b comes first (has been edited)
+          } else {
+            // Neither has been edited, sort by creation date
+            return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+          }
+        default:
+          return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+      }
+    });
+
+    return filtered;
+  }, [entries, searchTerm, selectedYear, sortBy]);
 
   const handleDelete = async (id, date, location) => {
     const result = await Swal.fire({
@@ -276,6 +303,19 @@ const StandbyTable = ({ onEdit }) => {
               {year === 'all' ? 'All Years' : year}
             </option>
           ))}
+        </select>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className={`px-3 sm:px-4 py-2 border ${
+            theme === 'dark' 
+              ? 'bg-gray-700 border-gray-600 text-white' 
+              : 'bg-white border-gray-300 text-gray-900'
+          } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+        >
+          <option value="recent-entry">Most Recent Entries</option>
+          <option value="oldest-entry">Oldest Entries First</option>
+          <option value="recent-edit">Recently Edited</option>
         </select>
       </div>
 
