@@ -46,8 +46,31 @@ const GoCardTable = () => {
 
   // Memoized current balance to prevent unnecessary re-calculations
   const currentBalance = React.useMemo(() => {
-    return entries.length > 0 ? entries[entries.length - 1].balance : 0;
-  }, [entries]);
+    if (selectedYear === '') {
+      // Show current balance for the current date (latest entry overall)
+      return entries.length > 0 ? entries[entries.length - 1].balance : 0;
+    } else {
+      // When filtered by year, show that year's balance as of its most recent date
+      const yearFiltered = entries
+        .filter(entry => {
+          try {
+            return new Date(entry.date).getFullYear().toString() === selectedYear;
+          } catch (error) {
+            console.warn('Error parsing date for entry:', entry);
+            return false;
+          }
+        })
+        .sort((a, b) => {
+          try {
+            return new Date(a.date) - new Date(b.date);
+          } catch (error) {
+            console.warn('Error sorting dates:', a.date, b.date);
+            return 0;
+          }
+        });
+      return yearFiltered.length > 0 ? yearFiltered[yearFiltered.length - 1].balance : 0;
+    }
+  }, [entries, selectedYear]);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -255,7 +278,13 @@ const GoCardTable = () => {
     if (!user) return;
 
     try {
-      await update(ref(db, `go-card/entries/${editingId}`), editData);
+      // Add updatedAt timestamp to mark the entry as edited
+      const updatedData = {
+        ...editData,
+        updatedAt: Date.now()
+      };
+      
+      await update(ref(db, `go-card/entries/${editingId}`), updatedData);
       await recalculateBalances();
       // Trigger balance refresh in forms
       localStorage.setItem('go_card_balance_refresh', Date.now().toString());
