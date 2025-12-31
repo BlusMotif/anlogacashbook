@@ -665,15 +665,11 @@ const GoCardTable = () => {
                             className="w-full px-1 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
-                          <div className="flex items-center gap-2">
+                          <div className="relative">
                             <span className="font-medium">{formatDate(entry.date)}</span>
                             {entry.updatedAt && (
-                              <span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
-                                theme === 'dark' 
-                                  ? 'bg-blue-900 text-blue-200' 
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                Edited
+                              <span className={`absolute top-1 right-1 text-xs px-1 py-0.5 rounded whitespace-nowrap bg-blue-500 text-white`}>
+                                E
                               </span>
                             )}
                           </div>
@@ -827,7 +823,7 @@ const GoCardTable = () => {
                 <tbody className={`divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
                   {filteredEntries.map(entry => (
                     <tr key={entry.id} className={`${theme === 'dark' ? 'hover:bg-black' : 'hover:bg-white'} transition duration-150`}>
-                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                      <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'} relative`}>
                         {editingId === entry.id ? (
                           <input
                             type="date"
@@ -836,18 +832,18 @@ const GoCardTable = () => {
                             className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 text-gray-900"
                           />
                         ) : (
-                          <div className="flex items-center gap-2">
+                          <>
                             <span className="font-medium">{formatDate(entry.date)}</span>
                             {entry.updatedAt && (
-                              <span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
+                              <span className={`absolute top-1 right-1 text-xs px-1 py-0.5 rounded whitespace-nowrap ${
                                 theme === 'dark' 
                                   ? 'bg-blue-900 text-blue-200' 
                                   : 'bg-blue-100 text-blue-800'
                               }`}>
-                                Edited
+                                E
                               </span>
                             )}
-                          </div>
+                          </>
                         )}
                       </td>
                       <td className={`px-3 py-3 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
