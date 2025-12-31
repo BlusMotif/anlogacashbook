@@ -161,7 +161,7 @@ const GoCardForm = () => {
       Swal.fire({
         icon: 'success',
         title: 'Entry Added!',
-        text: 'Your GOCARD entry has been successfully added.',
+        text: 'Your Gocard entry has been successfully added.',
         confirmButtonColor: '#10B981'
       });
     } catch (error) {
@@ -193,7 +193,7 @@ const GoCardForm = () => {
         </div>
       </div>
 
-      <h2 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Add New GOCARD Entry</h2>
+      <h2 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Add New Gocard Entry</h2>
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>

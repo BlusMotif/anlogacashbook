@@ -3,6 +3,24 @@ import { ref, push, set } from 'firebase/database';
 import { db, auth } from '../firebase';
 import Swal from 'sweetalert2';
 import { useTheme } from '../ThemeContext';
+
+// Function to sanitize Firebase keys by replacing invalid characters
+const sanitizeKey = (key) => {
+  return key.replace(/[.#$/\[\]]/g, '_').replace(/[()]/g, '').trim();
+};
+
+// Generate date options for M1-N31
+const generateDateOptions = () => {
+  const options = [];
+  for (let i = 1; i <= 31; i++) {
+    options.push(`M${i}`);
+    options.push(`N${i}`);
+  }
+  return options;
+};
+
+const DATE_OPTIONS = generateDateOptions();
+
 const CHECKLIST_ITEMS = [
   'PATIENT MONITOR',
   'FETAL MONITOR',
@@ -59,30 +77,45 @@ const CHECKLIST_ITEMS = [
   'SHELVES CLEANLINESS'
 ];
 
+const initialChecklistState = CHECKLIST_ITEMS.reduce((acc, item) => {
+  acc[sanitizeKey(item)] = '';
+  return acc;
+}, {});
+
+// Function to normalize checklist data for backward compatibility
+const normalizeChecklistData = (data) => {
+  if (!data) return initialChecklistState;
+  
+  const normalized = { ...initialChecklistState };
+  
+  CHECKLIST_ITEMS.forEach(item => {
+    const sanitizedKey = sanitizeKey(item);
+    // Try sanitized key first (new format), then original key (old format)
+    normalized[sanitizedKey] = data[sanitizedKey] || data[item] || '';
+  });
+  
+  return normalized;
+};
+
 const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) => {
   const { theme } = useTheme();
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState('M1');
   const [handingOverCrew, setHandingOverCrew] = useState('');
   const [takingOverCrew, setTakingOverCrew] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const initialChecklistState = CHECKLIST_ITEMS.reduce((acc, item) => {
-    acc[item] = '';
-    return acc;
-  }, {});
 
   const [checklistData, setChecklistData] = useState(initialChecklistState);
 
   // Update form when editingEntry changes
   useEffect(() => {
     if (editingEntry) {
-      setDate(editingEntry.date || new Date().toISOString().split('T')[0]);
+      setDate(editingEntry.date || 'M1');
       setHandingOverCrew(editingEntry.handingOverCrew || '');
       setTakingOverCrew(editingEntry.takingOverCrew || '');
-      setChecklistData(editingEntry.checklistData || initialChecklistState);
+      setChecklistData(normalizeChecklistData(editingEntry.checklistData));
     } else {
       // Reset form when not editing
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate('M1');
       setHandingOverCrew('');
       setTakingOverCrew('');
       setChecklistData(initialChecklistState);
@@ -92,7 +125,7 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
   const handleChecklistChange = (item, value) => {
     setChecklistData(prev => ({
       ...prev,
-      [item]: value
+      [sanitizeKey(item)]: value
     }));
   };
 
@@ -111,7 +144,7 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
     }
 
     // Check if ALL items have been selected
-    const emptyItems = CHECKLIST_ITEMS.filter(item => !checklistData[item] || checklistData[item] === '');
+    const emptyItems = CHECKLIST_ITEMS.filter(item => !checklistData[sanitizeKey(item)] || checklistData[sanitizeKey(item)] === '');
     if (emptyItems.length > 0) {
       Swal.fire({
         title: 'Incomplete Checklist!',
@@ -170,7 +203,7 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
 
       // Reset form
       if (!editingEntry) {
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate('M1');
         setHandingOverCrew('');
         setTakingOverCrew('');
         setChecklistData(initialChecklistState);
@@ -203,8 +236,7 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
             <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Date *
             </label>
-            <input
-              type="date"
+            <select
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
@@ -213,7 +245,12 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
                   ? 'bg-gray-700 border-gray-600 text-gray-300' 
                   : 'bg-white border-gray-300 text-gray-900'
               }`}
-            />
+            >
+              <option value="">Select Date *</option>
+              {DATE_OPTIONS.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -265,19 +302,20 @@ const EquipmentChecklistForm = ({ editingEntry = null, onCancelEdit = null }) =>
                   {item} <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={checklistData[item]}
+                  value={checklistData[sanitizeKey(item)] || ''}
                   onChange={(e) => handleChecklistChange(item, e.target.value)}
                   required
                   className={`px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
                     theme === 'dark' 
                       ? 'bg-gray-600 border-gray-500 text-gray-200' 
                       : 'bg-white border-gray-300 text-gray-900'
-                  } ${!checklistData[item] ? 'border-red-300' : ''}`}
+                  } ${!checklistData[sanitizeKey(item)] ? 'border-red-300' : ''}`}
                 >
                   <option value="">Select *</option>
                   <option value="P">P (Perfect Condition)</option>
                   <option value="F">F (Faulty)</option>
                   <option value="N/A">N/A (Not Available)</option>
+                  <option value="O">O (Under Observation)</option>
                 </select>
               </div>
             ))}

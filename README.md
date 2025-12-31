@@ -1,11 +1,11 @@
-# Anloga Ambulance Station
+# Records Management System
 
-A modern React-based cashbook management system for ambulance services, built with Firebase and deployed on Render.
+A modern React-based records management system for efficient data tracking and management, built with Firebase and deployed on Render.
 
 ## 🚀 Features
 
 - User authentication with Firebase
-- Real-time cashbook entries management
+- Real-time records management and tracking
 - Mobile-responsive design
 - Dark/Light theme support
 - Excel export functionality
@@ -186,4 +186,4 @@ For support or questions, please contact the development team.
 
 ---
 
-**Built with ❤️ for Anloga Ambulance Service**
+**Built with ❤️ for efficient records management**

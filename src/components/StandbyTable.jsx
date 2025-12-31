@@ -20,8 +20,6 @@ const StandbyTable = ({ onEdit }) => {
   const [entries, setEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 50;
 
   useEffect(() => {
     const standbyRef = ref(db, 'standby');
@@ -58,17 +56,6 @@ const StandbyTable = ({ onEdit }) => {
     
     return matchesSearch && matchesYear;
   });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentEntries = filteredEntries.slice(startIndex, endIndex);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedYear]);
 
   const handleDelete = async (id, date, location) => {
     const result = await Swal.fire({
@@ -142,72 +129,64 @@ const StandbyTable = ({ onEdit }) => {
     }
 
     const workbook = new ExcelJS.Workbook();
-    const totalEntries = filteredEntries.length;
-    const totalSheets = Math.ceil(totalEntries / itemsPerPage);
+    const worksheet = workbook.addWorksheet('Standby Entries');
 
-    for (let i = 0; i < totalSheets; i++) {
-      const sheetEntries = filteredEntries.slice(i * itemsPerPage, (i + 1) * itemsPerPage);
-      const worksheet = workbook.addWorksheet(`Page ${i + 1}`);
+    // Add title
+    worksheet.mergeCells('A1:F1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = 'Standby Entries';
+    titleCell.font = { size: 16, bold: true };
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-      // Add title
-      worksheet.mergeCells('A1:F1');
-      const titleCell = worksheet.getCell('A1');
-      titleCell.value = 'Standby Entries';
-      titleCell.font = { size: 16, bold: true };
-      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    // Add headers
+    worksheet.addRow([]);
+    const headerRow = worksheet.addRow(['Date', 'Location', 'Reason', 'Watch', 'Amount (GH₵)', 'Entry Date/Time']);
+    headerRow.font = { bold: true, size: 11, name: 'Calibri', color: { argb: 'FF000000' } };
+    headerRow.eachCell((cell) => {
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
 
-      // Add headers
-      worksheet.addRow([]);
-      const headerRow = worksheet.addRow(['Date', 'Location', 'Reason', 'Watch', 'Amount (GH₵)', 'Entry Date/Time']);
-      headerRow.font = { bold: true };
-      headerRow.eachCell((cell) => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF16a34a' }
-        };
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      });
+    // Add data
+    filteredEntries.forEach(entry => {
+      const excelDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.date);
+      worksheet.addRow([
+        excelDate,
+        entry.location,
+        entry.reason,
+        entry.watch,
+        parseFloat(entry.amount).toFixed(2),
+        new Date(entry.timestamp).toLocaleString()
+      ]);
+    });
 
-      // Add data
-      sheetEntries.forEach(entry => {
-        worksheet.addRow([
-          formatDate(entry.date),
-          entry.location,
-          entry.reason,
-          entry.watch,
-          parseFloat(entry.amount).toFixed(2),
-          new Date(entry.timestamp).toLocaleString()
-        ]);
-      });
+    // Format the date column as a proper date
+    worksheet.getColumn(1).numFmt = 'dd/mm/yyyy';
 
-      // Auto-fit columns
-      worksheet.columns.forEach(column => {
-        let maxLength = 0;
-        column.eachCell({ includeEmpty: true }, cell => {
-          const columnLength = cell.value ? cell.value.toString().length : 10;
-          if (columnLength > maxLength) {
-            maxLength = columnLength;
-          }
-        });
-        column.width = maxLength < 12 ? 12 : maxLength + 2;
-      });
-
-      // Add borders
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) {
-          row.eachCell((cell) => {
-            cell.border = {
-              top: { style: 'thin' },
-              left: { style: 'thin' },
-              bottom: { style: 'thin' },
-              right: { style: 'thin' }
-            };
-          });
+    // Auto-fit columns
+    worksheet.columns.forEach(column => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, cell => {
+        const columnLength = cell.value ? cell.value.toString().length : 10;
+        if (columnLength > maxLength) {
+          maxLength = columnLength;
         }
       });
-    }
+      column.width = maxLength < 12 ? 12 : maxLength + 2;
+    });
+
+    // Add borders
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+    });
 
     // Generate and download
     const buffer = await workbook.xlsx.writeBuffer();
@@ -324,8 +303,8 @@ const StandbyTable = ({ onEdit }) => {
             </tr>
           </thead>
           <tbody className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
-            {currentEntries.length > 0 ? (
-              currentEntries.map((entry) => (
+            {filteredEntries.length > 0 ? (
+              filteredEntries.map((entry) => (
                 <tr key={entry.id} className={theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                   <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                     {formatDate(entry.date)}
@@ -382,37 +361,6 @@ const StandbyTable = ({ onEdit }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-4 py-3 rounded-lg font-medium transition duration-200 ${
-              currentPage === 1
-                ? theme === 'dark' ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-green-500 hover:bg-green-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'
-            }`}
-          >
-            Previous
-          </button>
-          <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-3 rounded-lg font-medium transition duration-200 ${
-              currentPage === totalPages
-                ? theme === 'dark' ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-green-500 hover:bg-green-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 };

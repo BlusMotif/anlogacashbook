@@ -1,6 +1,6 @@
 # PWA (Progressive Web App) Setup Complete! 🎉
 
-Your Anloga Cash Book application is now a Progressive Web App with the following features:
+Your Records Management System application is now a Progressive Web App with the following features:
 
 ## ✅ What's Been Added:
 

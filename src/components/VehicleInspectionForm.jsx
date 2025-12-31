@@ -4,6 +4,18 @@ import { db, auth } from '../firebase';
 import Swal from 'sweetalert2';
 import { useTheme } from '../ThemeContext';
 
+// Generate date options for M1-N31
+const generateDateOptions = () => {
+  const options = [];
+  for (let i = 1; i <= 31; i++) {
+    options.push(`M${i}`);
+    options.push(`N${i}`);
+  }
+  return options;
+};
+
+const DATE_OPTIONS = generateDateOptions();
+
 // Vehicle inspection items
 const INSPECTION_ITEMS = [
   'KEYS',
@@ -137,7 +149,8 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
         handingOverCrew,
         takingOverCrew,
         userId: user.uid,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        updatedAt: editingEntry ? Date.now() : null
       };
 
       if (editingEntry) {
@@ -189,8 +202,7 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               DATE <span className="text-red-500">*</span>
             </label>
-            <input
-              type="date"
+            <select
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
@@ -199,7 +211,12 @@ const VehicleInspectionForm = ({ editingEntry = null, onCancelEdit = null }) => 
                   : 'bg-white border-gray-300 text-gray-900'
               }`}
               required
-            />
+            >
+              <option value="">Select Date</option>
+              {DATE_OPTIONS.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
           </div>
 
           <div>

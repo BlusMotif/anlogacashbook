@@ -10,8 +10,6 @@ const AssetRegisterTable = ({ onEdit }) => {
   const [entries, setEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 50;
 
   useEffect(() => {
     const entriesRef = ref(db, 'assetRegister');
@@ -114,67 +112,52 @@ const AssetRegisterTable = ({ onEdit }) => {
 
     try {
       const workbook = new ExcelJS.Workbook();
-      const itemsPerPage = 50;
-      const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+      const worksheet = workbook.addWorksheet('Asset Register');
 
-      for (let page = 0; page < totalPages; page++) {
-        const startIndex = page * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, filteredEntries.length);
-        const sheetEntries = filteredEntries.slice(startIndex, endIndex);
-        
-        const worksheet = workbook.addWorksheet(`Page ${page + 1}`);
+      worksheet.columns = [
+        { key: 'sn', header: 'S/N', width: 10 },
+        { key: 'date', header: 'Date', width: 12 },
+        { key: 'assetName', header: 'Asset Name', width: 25 },
+        { key: 'model', header: 'Model', width: 20 },
+        { key: 'serialNumber', header: 'Serial Number', width: 20 },
+        { key: 'assetCode', header: 'Asset Code', width: 15 },
+        { key: 'amount', header: 'Amount (₵)', width: 15 },
+        { key: 'condition', header: 'Condition', width: 15 }
+      ];
 
-        worksheet.columns = [
-          { key: 'sn', header: 'S/N', width: 10 },
-          { key: 'date', header: 'Date', width: 12 },
-          { key: 'assetName', header: 'Asset Name', width: 25 },
-          { key: 'model', header: 'Model', width: 20 },
-          { key: 'serialNumber', header: 'Serial Number', width: 20 },
-          { key: 'assetCode', header: 'Asset Code', width: 15 },
-          { key: 'amount', header: 'Amount (₵)', width: 15 },
-          { key: 'condition', header: 'Condition', width: 15 }
-        ];
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, size: 11, name: 'Calibri', color: { argb: 'FF000000' } };
+      headerRow.alignment = { horizontal: 'center' };
 
-        const headerRow = worksheet.getRow(1);
-        headerRow.font = { bold: true, size: 12 };
-        headerRow.alignment = { horizontal: 'center' };
+      filteredEntries.forEach(entry => {
+        const excelDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.date);
+        worksheet.addRow([
+          entry.sn,
+          excelDate,
+          entry.assetName,
+          entry.model,
+          entry.serialNumber,
+          entry.assetCode,
+          parseFloat(entry.amount || 0).toFixed(2),
+          entry.condition
+        ]);
+      });
 
-        for (let col = 1; col <= 8; col++) {
-          const headerCell = headerRow.getCell(col);
-          headerCell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FF16a34a' }
-          };
-          headerCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+      // Format the date column as a proper date
+      worksheet.getColumn(2).numFmt = 'dd/mm/yyyy';
+
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+          row.eachCell(cell => {
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+          });
         }
-
-        sheetEntries.forEach(entry => {
-          worksheet.addRow([
-            entry.sn,
-            formatDate(entry.date),
-            entry.assetName,
-            entry.model,
-            entry.serialNumber,
-            entry.assetCode,
-            parseFloat(entry.amount || 0).toFixed(2),
-            entry.condition
-          ]);
-        });
-
-        worksheet.eachRow((row, rowNumber) => {
-          if (rowNumber > 1) {
-            row.eachCell(cell => {
-              cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-              };
-            });
-          }
-        });
-      }
+      });
 
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -188,7 +171,7 @@ const AssetRegisterTable = ({ onEdit }) => {
       Swal.fire({
         icon: 'success',
         title: 'Export Successful!',
-        text: `Asset register exported with ${totalPages} sheet${totalPages > 1 ? 's' : ''}.`,
+        text: `Asset register exported successfully.`,
         confirmButtonColor: '#2563eb'
       });
     } catch (error) {
@@ -222,13 +205,6 @@ const AssetRegisterTable = ({ onEdit }) => {
     
     return matchesSearch && matchesYear;
   });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
-  const currentEntries = filteredEntries.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   // Calculate total assets and total amount
   const totalAssets = filteredEntries.length;
@@ -331,8 +307,8 @@ const AssetRegisterTable = ({ onEdit }) => {
             </tr>
           </thead>
           <tbody className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
-            {currentEntries.length > 0 ? (
-              currentEntries.map((entry) => (
+            {filteredEntries.length > 0 ? (
+              filteredEntries.map((entry) => (
                 <tr key={entry.id} className={theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                   <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                     {entry.sn}
@@ -397,37 +373,6 @@ const AssetRegisterTable = ({ onEdit }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-4 py-3 rounded-lg font-medium transition duration-200 ${
-              currentPage === 1
-                ? theme === 'dark' ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'
-            }`}
-          >
-            Previous
-          </button>
-          <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-3 rounded-lg font-medium transition duration-200 ${
-              currentPage === totalPages
-                ? theme === 'dark' ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 };

@@ -268,7 +268,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                {/* GOCARD System */}
+                {/* Gocard System */}
                 <div 
                   onClick={() => setCurrentPageAndSave('go-card-dashboard')}
                   className={`group cursor-pointer ${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} p-8 rounded-2xl shadow-lg border-2 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-green-500`}
@@ -280,10 +280,10 @@ const Dashboard = () => {
                       </svg>
                     </div>
                     <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-3 group-hover:text-green-600 transition-colors`}>
-                      GOCARD
+                      Gocard
                     </h3>
                     <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed mb-5`}>
-                      Manage GOCARD transactions with merchant and attendant details
+                      Manage Gocard transactions with merchant and attendant details
                     </p>
                     <div className={`flex items-center justify-center text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} group-hover:translate-x-2 transition-transform duration-300`}>
                       <span>Open System</span>
@@ -491,11 +491,11 @@ const Dashboard = () => {
         return (
           <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 space-y-6 sm:space-y-8">
             <div className="text-center mb-6 sm:mb-8">
-              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base px-4`}>Choose a section to manage your GOCARD operations</p>
+              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base px-4`}>Choose a section to manage your Gocard operations</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-sm sm:max-w-2xl mx-auto px-4">
-              {/* GOCARD Form Button */}
+              {/* Gocard Form Button */}
               <button
                 onClick={() => setCurrentPageAndSave('go-card-form')}
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
@@ -506,12 +506,12 @@ const Dashboard = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">GOCARD Form</h3>
-                  <p className="text-xs sm:text-sm opacity-90">Add new GOCARD entries</p>
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">Gocard Form</h3>
+                  <p className="text-xs sm:text-sm opacity-90">Add new Gocard entries</p>
                 </div>
               </button>
 
-              {/* GOCARD Entries Button */}
+              {/* Gocard Entries Button */}
               <button
                 onClick={() => setCurrentPageAndSave('go-card-entries')}
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
@@ -522,7 +522,7 @@ const Dashboard = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
-                  <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">GOCARD Entries</h3>
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">Gocard Entries</h3>
                   <p className="text-xs sm:text-sm opacity-90">View and manage all entries</p>
                 </div>
               </button>
@@ -540,7 +540,7 @@ const Dashboard = () => {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to GOCARD Dashboard
+                Back to Gocard Dashboard
               </button>
             </div>
             <GoCardForm />
@@ -557,7 +557,7 @@ const Dashboard = () => {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to GOCARD Dashboard
+                Back to Gocard Dashboard
               </button>
             </div>
             <GoCardTable />
@@ -605,13 +605,13 @@ const Dashboard = () => {
             onClick={() => { setCurrentPageAndSave('dashboard'); setSidebarOpen(false); }}
             className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'dashboard' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
           >
-            Fuel Support Dashboard
+            Fuel Support
           </button>
           <button
             onClick={() => { setCurrentPageAndSave('go-card-dashboard'); setSidebarOpen(false); }}
             className={`block w-full text-left px-4 py-2 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'} ${currentPage === 'go-card-dashboard' ? (theme === 'dark' ? 'bg-gray-700 text-green-400' : 'bg-green-100 text-green-700') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')}`}
           >
-            GOCARD Dashboard
+            Gocard
           </button>
           <button
             onClick={() => { setCurrentPageAndSave('standby'); setSidebarOpen(false); }}
@@ -691,16 +691,12 @@ const Dashboard = () => {
             <div className="text-center">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {currentPage === 'welcome' ? '' :
-                 currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
+                 currentPage === 'dashboard' ? 'Fuel Support' :
                  currentPage === 'fuel-support' ? 'Fuel Support' :
                  currentPage === 'entries' ? 'Your Entries' :
-                 currentPage === 'go-card-dashboard' ? 'GOCARD Dashboard' :
-                 currentPage === 'go-card-form' ? 'GOCARD Form' :
-                 currentPage === 'go-card-entries' ? 'GOCARD Entries' :
-                 currentPage === 'standby' ? 'Standby' :
-                 currentPage === 'asset-register' ? 'Asset Register' :
-                 currentPage === 'equipment-checklist' ? 'Equipment Checklist' :
-                 currentPage === 'vehicle-inspection' ? 'Vehicle Inspection' :
+                 currentPage === 'go-card-dashboard' ? 'Gocard' :
+                 currentPage === 'go-card-form' ? 'Gocard Form' :
+                 currentPage === 'go-card-entries' ? 'Gocard Entries' :
                  'Settings'}
               </h1>
             </div>
@@ -722,12 +718,12 @@ const Dashboard = () => {
                 <img src={theme === 'dark' ? "/RMS logo.png" : "/RMS logo2.png"} alt="" className="h-12 mb-4" onError={(e) => e.target.style.display = 'none'} />
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                   {currentPage === 'welcome' ? '' :
-                   currentPage === 'dashboard' ? 'Fuel Support Dashboard' :
+                   currentPage === 'dashboard' ? 'Fuel Support' :
                    currentPage === 'fuel-support' ? 'Fuel Support' :
                    currentPage === 'entries' ? 'Your Entries' :
-                   currentPage === 'go-card-dashboard' ? 'GOCARD Dashboard' :
-                   currentPage === 'go-card-form' ? 'GOCARD Form' :
-                   currentPage === 'go-card-entries' ? 'GOCARD Entries' :
+                   currentPage === 'go-card-dashboard' ? 'Gocard' :
+                   currentPage === 'go-card-form' ? 'Gocard Form' :
+                   currentPage === 'go-card-entries' ? 'Gocard Entries' :
                    currentPage === 'standby' ? 'Standby' :
                    currentPage === 'asset-register' ? 'Asset Register' :
                    currentPage === 'equipment-checklist' ? 'Equipment Checklist' :

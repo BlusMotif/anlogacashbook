@@ -6,6 +6,35 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { useTheme } from '../ThemeContext';
 
+// Date formatting function
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Function to parse date string and return sortable value
+const parseDateForSorting = (dateStr) => {
+  if (!dateStr) return 0;
+  
+  const match = dateStr.match(/^([MN])(\d+)$/);
+  if (!match) return 0;
+  
+  const type = match[1]; // 'M' or 'N'
+  const number = parseInt(match[2], 10);
+  
+  // M comes before N for the same number
+  // So M1 = 1.0, N1 = 1.5, M2 = 2.0, N2 = 2.5, etc.
+  return number + (type === 'M' ? 0 : 0.5);
+};
+
+// Function to sanitize Firebase keys by replacing invalid characters
+const sanitizeKey = (key) => {
+  return key.replace(/[.#$/\[\]]/g, '_').replace(/[()]/g, '').trim();
+};
+
 const CHECKLIST_ITEMS = [
   'PATIENT MONITOR',
   'FETAL MONITOR',
@@ -62,15 +91,39 @@ const CHECKLIST_ITEMS = [
   'SHELVES CLEANLINESS'
 ];
 
+// Function to normalize checklist data for backward compatibility
+const normalizeChecklistData = (data) => {
+  if (!data) return {};
+  
+  const normalized = {};
+  
+  CHECKLIST_ITEMS.forEach(item => {
+    const sanitizedKey = sanitizeKey(item);
+    // Try sanitized key first (new format), then original key (old format)
+    normalized[sanitizedKey] = data[sanitizedKey] || data[item] || '';
+  });
+  
+  return normalized;
+};
+
+// Function to get display name for status
+const getStatusDisplay = (status) => {
+  switch(status) {
+    case 'P': return 'Perfect Condition';
+    case 'F': return 'Faulty';
+    case 'N/A': return 'Not Available';
+    case 'O': return 'Under Observation';
+    default: return 'Not Checked';
+  }
+};
+
 const EquipmentChecklistTable = ({ onEdit }) => {
   const { theme } = useTheme();
   const [entries, setEntries] = useState([]);
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const entriesPerPage = 10;
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -83,8 +136,12 @@ const EquipmentChecklistTable = ({ onEdit }) => {
             id,
             ...entry
           }));
-          // Sort by timestamp (newest first)
-          entriesArray.sort((a, b) => b.timestamp - a.timestamp);
+          // Sort by custom date format (M1, N1, M2, N2, etc.)
+          entriesArray.sort((a, b) => {
+            const dateA = parseDateForSorting(a.date);
+            const dateB = parseDateForSorting(b.date);
+            return dateA - dateB;
+          });
           setEntries(entriesArray);
         } else {
           setEntries([]);
@@ -109,29 +166,21 @@ const EquipmentChecklistTable = ({ onEdit }) => {
       );
     }
 
-    // Filter by year
-    if (selectedYear !== 'all') {
-      filtered = filtered.filter(entry => {
-        const entryYear = new Date(entry.date).getFullYear().toString();
-        return entryYear === selectedYear;
-      });
-    }
+    // Filter by year (disabled for equipment checklists with custom date format)
+    // if (selectedYear !== 'all') {
+    //   filtered = filtered.filter(entry => {
+    //     const entryYear = new Date(entry.date).getFullYear().toString();
+    //     return entryYear === selectedYear;
+    //   });
+    // }
 
     setFilteredEntries(filtered);
-    setCurrentPage(1);
   }, [searchTerm, selectedYear, entries]);
 
-  // Get unique years from entries
+  // Get unique years from entries (disabled for equipment checklists)
   const getYears = () => {
-    const years = [...new Set(entries.map(entry => new Date(entry.date).getFullYear()))];
-    return years.sort((a, b) => b - a);
+    return ['all'];
   };
-
-  // Pagination
-  const indexOfLastEntry = currentPage * entriesPerPage;
-  const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-  const currentEntries = filteredEntries.slice(indexOfFirstEntry, indexOfLastEntry);
-  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage);
 
   const handleDelete = async (id, date) => {
     const result = await Swal.fire({
@@ -167,28 +216,24 @@ const EquipmentChecklistTable = ({ onEdit }) => {
   };
 
   const handleViewDetails = (entry) => {
-    const formattedDate = new Date(entry.date).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-
     // Count statuses
-    const checklistData = entry.checklistData || {};
+    const checklistData = normalizeChecklistData(entry.checklistData);
     const statusCounts = {
       P: 0,
       F: 0,
-      'N/A': 0
+      'N/A': 0,
+      O: 0
     };
 
     Object.values(checklistData).forEach(value => {
       if (value === 'P') statusCounts.P++;
       else if (value === 'F') statusCounts.F++;
       else if (value === 'N/A') statusCounts['N/A']++;
+      else if (value === 'O') statusCounts.O++;
     });
 
     const itemsHtml = CHECKLIST_ITEMS.map(item => {
-      const status = checklistData[item] || 'Not Checked';
+      const status = checklistData[sanitizeKey(item)] || 'Not Checked';
       let statusColor = '#6b7280';
       let statusText = 'Not Checked';
       
@@ -201,6 +246,9 @@ const EquipmentChecklistTable = ({ onEdit }) => {
       } else if (status === 'N/A') {
         statusColor = '#6b7280';
         statusText = 'N/A';
+      } else if (status === 'O') {
+        statusColor = '#f59e0b';
+        statusText = 'Under Observation';
       }
       
       return `<div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #e5e7eb;">
@@ -213,7 +261,7 @@ const EquipmentChecklistTable = ({ onEdit }) => {
       title: '<span style="font-size: 1.25rem;">Medical Equipment Checklist Details</span>',
       html: `
         <div style="text-align: left; font-size: 0.85em;">
-          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Date:</strong> ${formattedDate}</p>
+          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Date:</strong> ${entry.date}</p>
           <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>INITIALS - HANDING OVER CREW:</strong> ${entry.handingOverCrew}</p>
           <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>INITIALS - TAKING OVER CREW:</strong> ${entry.takingOverCrew}</p>
           
@@ -222,6 +270,7 @@ const EquipmentChecklistTable = ({ onEdit }) => {
             <p style="margin: 5px 0; font-size: 0.85em;"><span style="color: #16a34a; font-weight: bold;">Perfect:</span> ${statusCounts.P}</p>
             <p style="margin: 5px 0; font-size: 0.85em;"><span style="color: #dc2626; font-weight: bold;">Faulty:</span> ${statusCounts.F}</p>
             <p style="margin: 5px 0; font-size: 0.85em;"><span style="color: #6b7280; font-weight: bold;">N/A:</span> ${statusCounts['N/A']}</p>
+            <p style="margin: 5px 0; font-size: 0.85em;"><span style="color: #f59e0b; font-weight: bold;">Under Observation:</span> ${statusCounts.O}</p>
           </div>
           
           <h4 style="margin-top: 20px; margin-bottom: 10px; font-weight: bold; font-size: 0.95em;">Equipment Items:</h4>
@@ -240,18 +289,50 @@ const EquipmentChecklistTable = ({ onEdit }) => {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Equipment Checklist');
 
+      // Add main heading - left aligned in A1
+      const mainHeadingCell = worksheet.getCell('A1');
+      mainHeadingCell.value = 'SHIFT INSPECTION CHECK LIS: MEDICAL EQUIPMENT';
+      mainHeadingCell.font = { name: 'Calibri', size: 12, bold: false, color: { argb: 'FF000000' } };
+      mainHeadingCell.alignment = { horizontal: 'left', vertical: 'center' };
+
+      // Add sub heading - positioned in column T (approximately 20cm apart)
+      const subHeadingCell = worksheet.getCell('T1');
+      subHeadingCell.value = 'TO BE APPLIED AT THE BEGINNING OF EVERY SHIFT';
+      subHeadingCell.font = { name: 'Calibri', size: 10, bold: false, color: { argb: 'FF000000' } };
+      subHeadingCell.alignment = { horizontal: 'left', vertical: 'center' };
+
+      // Add MONTH and YEAR under main heading with 10cm spacing
+      const monthCell = worksheet.getCell('A2');
+      monthCell.value = 'MONTH';
+      monthCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      monthCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      const yearCell = worksheet.getCell('J2');
+      yearCell.value = 'YEAR';
+      yearCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      yearCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      // Add STATION and REGION under sub heading with 5cm spacing
+      const stationCell = worksheet.getCell('T2');
+      stationCell.value = 'STATION';
+      stationCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      stationCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      const regionCell = worksheet.getCell('AB2');
+      regionCell.value = 'REGION';
+      regionCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      regionCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      // Add empty row for spacing
+      worksheet.addRow([]);
+
       // Create header row with Date first, equipment items, then crew columns last
       const headers = ['Date', ...CHECKLIST_ITEMS, 'INITIALS - HANDING OVER CREW', 'INITIALS - TAKING OVER CREW'];
       worksheet.addRow(headers);
 
       // Style header row
-      const headerRow = worksheet.getRow(1);
-      headerRow.font = { name: 'Calibri Light', color: { argb: 'FFFFFFFF' }, size: 12 };
-      headerRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF16a34a' }
-      };
+      const headerRow = worksheet.getRow(4);
+      headerRow.font = { name: 'Calibri', color: { argb: 'FF000000' }, size: 11, bold: false };
       headerRow.alignment = { 
         vertical: 'bottom', 
         horizontal: 'center',
@@ -271,44 +352,19 @@ const EquipmentChecklistTable = ({ onEdit }) => {
 
       // Add data rows
       filteredEntries.forEach(entry => {
-        const formattedDate = new Date(entry.date).toLocaleDateString('en-GB');
-        const checklistData = entry.checklistData || {};
+        const checklistData = normalizeChecklistData(entry.checklistData);
         
         const rowData = [
-          formattedDate,
-          ...CHECKLIST_ITEMS.map(item => checklistData[item] || ''),
+          entry.date, // Use raw date value (M1, N1, etc.) instead of converting to Date
+          ...CHECKLIST_ITEMS.map(item => checklistData[sanitizeKey(item)] || ''),
           entry.handingOverCrew || '',
           entry.takingOverCrew || ''
         ];
 
         const dataRow = worksheet.addRow(rowData);
 
-        // Color code the status cells (equipment items are now columns 2 to 51)
-        CHECKLIST_ITEMS.forEach((item, index) => {
-          const cellIndex = index + 2; // Starting after Date
-          const cell = dataRow.getCell(cellIndex);
-          const value = checklistData[item];
-          
-          if (value === 'P') {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFD1FAE5' } // Light green
-            };
-          } else if (value === 'F') {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFFECACA' } // Light red
-            };
-          } else if (value === 'N/A') {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFF3F4F6' } // Light gray
-            };
-          }
-        });
+        // Remove date formatting since we're using raw text values
+        // dataRow.getCell(1).numFmt = 'dd/mm/yyyy';
       });
 
       // Add borders to all cells
@@ -417,16 +473,16 @@ const EquipmentChecklistTable = ({ onEdit }) => {
             </tr>
           </thead>
           <tbody className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} divide-y ${theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
-            {currentEntries.length > 0 ? (
-              currentEntries.map((entry) => {
-                const checklistData = entry.checklistData || {};
+            {filteredEntries.length > 0 ? (
+              filteredEntries.map((entry) => {
+                const checklistData = normalizeChecklistData(entry.checklistData);
                 const checkedCount = Object.values(checklistData).filter(v => v !== '').length;
                 const faultyCount = Object.values(checklistData).filter(v => v === 'F').length;
                 
                 return (
                   <tr key={entry.id} className={theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                     <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
-                      {new Date(entry.date).toLocaleDateString('en-GB')}
+                      {entry.date}
                     </td>
                     <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
                       {entry.handingOverCrew}
@@ -483,37 +539,6 @@ const EquipmentChecklistTable = ({ onEdit }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center mt-6 gap-2">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === 1
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white'
-            }`}
-          >
-            Previous
-          </button>
-          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === totalPages
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 };

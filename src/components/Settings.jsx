@@ -5,6 +5,7 @@ import { ref, get, set, push } from 'firebase/database';
 import Swal from 'sweetalert2';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useTheme } from '../ThemeContext';
+import DatabaseConnectionTest from './DatabaseConnectionTest';
 
 const Settings = () => {
   const { theme } = useTheme();
@@ -113,12 +114,16 @@ const Settings = () => {
       const gocardRef = ref(db, 'gocard');
       const standbyRef = ref(db, 'standby');
       const assetRegisterRef = ref(db, 'assetRegister');
+      const ambulanceInspectionRef = ref(db, 'ambulanceInspection');
+      const equipmentChecklistRef = ref(db, 'equipmentChecklist');
 
-      const [cashbookSnapshot, gocardSnapshot, standbySnapshot, assetRegisterSnapshot] = await Promise.all([
+      const [cashbookSnapshot, gocardSnapshot, standbySnapshot, assetRegisterSnapshot, ambulanceInspectionSnapshot, equipmentChecklistSnapshot] = await Promise.all([
         get(cashbookRef),
         get(gocardRef),
         get(standbyRef),
-        get(assetRegisterRef)
+        get(assetRegisterRef),
+        get(ambulanceInspectionRef),
+        get(equipmentChecklistRef)
       ]);
 
       const timestamp = Date.now();
@@ -133,7 +138,9 @@ const Settings = () => {
         cashbook: cashbookSnapshot.val() || {},
         gocard: gocardSnapshot.val() || {},
         standby: standbySnapshot.val() || {},
-        assetRegister: assetRegisterSnapshot.val() || {}
+        assetRegister: assetRegisterSnapshot.val() || {},
+        ambulanceInspection: ambulanceInspectionSnapshot.val() || {},
+        equipmentChecklist: equipmentChecklistSnapshot.val() || {}
       };
 
       // Save to local storage
@@ -359,12 +366,16 @@ const Settings = () => {
       const gocardRef = ref(db, 'gocard');
       const standbyRef = ref(db, 'standby');
       const assetRegisterRef = ref(db, 'assetRegister');
+      const ambulanceInspectionRef = ref(db, 'ambulanceInspection');
+      const equipmentChecklistRef = ref(db, 'equipmentChecklist');
 
-      const [cashbookSnapshot, gocardSnapshot, standbySnapshot, assetRegisterSnapshot] = await Promise.all([
+      const [cashbookSnapshot, gocardSnapshot, standbySnapshot, assetRegisterSnapshot, ambulanceInspectionSnapshot, equipmentChecklistSnapshot] = await Promise.all([
         get(cashbookRef),
         get(gocardRef),
         get(standbyRef),
-        get(assetRegisterRef)
+        get(assetRegisterRef),
+        get(ambulanceInspectionRef),
+        get(equipmentChecklistRef)
       ]);
 
       const timestamp = Date.now();
@@ -379,19 +390,33 @@ const Settings = () => {
         cashbook: cashbookSnapshot.val() || {},
         gocard: gocardSnapshot.val() || {},
         standby: standbySnapshot.val() || {},
-        assetRegister: assetRegisterSnapshot.val() || {}
+        assetRegister: assetRegisterSnapshot.val() || {},
+        ambulanceInspection: ambulanceInspectionSnapshot.val() || {},
+        equipmentChecklist: equipmentChecklistSnapshot.val() || {}
       };
 
       // Save to local storage
       await saveBackupToStorage(backupData, timestamp);
 
+      // Create downloadable backup file
+      const backupJson = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([backupJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Records_Management_System_Backup_${new Date(timestamp).toISOString().split('T')[0]}_${new Date(timestamp).toTimeString().split(' ')[0].replace(/:/g, '-')}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
       Swal.fire({
         icon: 'success',
-        title: 'Backup Created!',
+        title: 'Backup Created & Downloaded!',
         html: `
-          <p>Your data has been successfully backed up.</p>
+          <p>Your data has been successfully backed up and downloaded.</p>
           <p class="text-sm text-gray-600 mt-2">Backup saved: ${new Date(timestamp).toLocaleString()}</p>
-          <p class="text-sm text-gray-500 mt-2">Backup stored locally and ready for restoration.</p>
+          <p class="text-sm text-gray-500 mt-2">Backup stored locally and downloaded as JSON file.</p>
         `,
         confirmButtonColor: '#10B981'
       });
@@ -500,6 +525,12 @@ const Settings = () => {
           if (backupData.assetRegister) {
             promises.push(set(ref(db, 'assetRegister'), backupData.assetRegister));
           }
+          if (backupData.ambulanceInspection) {
+            promises.push(set(ref(db, 'ambulanceInspection'), backupData.ambulanceInspection));
+          }
+          if (backupData.equipmentChecklist) {
+            promises.push(set(ref(db, 'equipmentChecklist'), backupData.equipmentChecklist));
+          }
 
           await Promise.all(promises);
 
@@ -590,6 +621,12 @@ const Settings = () => {
       }
       if (backupData.assetRegister) {
         promises.push(set(ref(db, 'assetRegister'), backupData.assetRegister));
+      }
+      if (backupData.ambulanceInspection) {
+        promises.push(set(ref(db, 'ambulanceInspection'), backupData.ambulanceInspection));
+      }
+      if (backupData.equipmentChecklist) {
+        promises.push(set(ref(db, 'equipmentChecklist'), backupData.equipmentChecklist));
       }
 
       await Promise.all(promises);
@@ -811,7 +848,7 @@ const Settings = () => {
               <div>
                 <p className="text-sm font-medium">Important Security Feature</p>
                 <p className={`text-xs ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} mt-1`}>
-                  This password will be required when using the "Delete All" function in your Cashbook and GOCARD tables. Choose a password you can remember but that is secure.
+                  This password will be required when using the "Delete All" function in your Cashbook and Gocard tables. Choose a password you can remember but that is secure.
                 </p>
               </div>
             </div>
@@ -999,7 +1036,7 @@ const Settings = () => {
               <div>
                 <p className="text-sm font-medium">What's Backed Up?</p>
                 <p className={`text-xs ${theme === 'dark' ? 'text-green-300' : 'text-green-700'} mt-1`}>
-                  All data including Fuel Support, GOCARD, Standby, and Asset Register entries.
+                  All data including Fuel Support, Gocard, Standby, Asset Register, Ambulance Inspection, and Equipment Checklist entries.
                 </p>
               </div>
             </div>
@@ -1056,6 +1093,11 @@ const Settings = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Database Connection Test */}
+        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} p-6 rounded-xl`}>
+          <DatabaseConnectionTest />
         </div>
       </div>
     </div>

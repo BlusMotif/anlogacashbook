@@ -1,6 +1,6 @@
 # ✅ PWA Conversion Summary
 
-Your Anloga Cash Book application has been successfully converted to a Progressive Web App!
+Your Records Management System application has been successfully converted to a Progressive Web App!
 
 ## 🎉 What Was Done:
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ref, onValue, remove } from 'firebase/database';
-import { db } from '../firebase';
-import Swal from 'sweetalert2';
+import { db, handleFirebaseError } from '../firebase';
 import { useTheme } from '../ThemeContext';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import Swal from 'sweetalert2';
 
 // Vehicle inspection items
 const INSPECTION_ITEMS = [
@@ -53,6 +53,30 @@ const INSPECTION_ITEMS = [
   'DRIVERS MANUAL'
 ];
 
+// Date formatting function
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Function to parse date string and return sortable value
+const parseDateForSorting = (dateStr) => {
+  if (!dateStr) return 0;
+  
+  const match = dateStr.match(/^([MN])(\d+)$/);
+  if (!match) return 0;
+  
+  const type = match[1]; // 'M' or 'N'
+  const number = parseInt(match[2], 10);
+  
+  // M comes before N for the same number
+  // So M1 = 1.0, N1 = 1.5, M2 = 2.0, N2 = 2.5, etc.
+  return number + (type === 'M' ? 0 : 0.5);
+};
+
 // Sanitize keys for Firebase compatibility
 const sanitizeKey = (str) => str.replace(/[.#$/\[\]]/g, '_');
 const itemKeyMap = INSPECTION_ITEMS.reduce((acc, item) => {
@@ -66,25 +90,43 @@ const VehicleInspectionTable = ({ onEdit }) => {
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 10;
+  const [sortBy, setSortBy] = useState('recent-entry');
 
   useEffect(() => {
     const inspectionRef = ref(db, 'ambulanceInspection');
     const unsubscribe = onValue(inspectionRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const entriesArray = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-        }));
-        entriesArray.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setEntries(entriesArray);
-        setFilteredEntries(entriesArray);
-      } else {
+      try {
+        const data = snapshot.val();
+        if (data) {
+          const entriesArray = Object.keys(data).map((key) => ({
+            id: key,
+            ...data[key],
+          }));
+          setEntries(entriesArray);
+        } else {
+          setEntries([]);
+        }
+      } catch (error) {
+        console.error('Error processing vehicle inspection data:', error);
         setEntries([]);
-        setFilteredEntries([]);
+        const { errorTitle, errorMessage } = handleFirebaseError(error, 'load vehicle inspection data');
+        Swal.fire({
+          icon: 'error',
+          title: errorTitle,
+          text: errorMessage,
+          confirmButtonColor: '#16a34a'
+        });
       }
+    }, (error) => {
+      console.error('Database read error:', error);
+      setEntries([]);
+      const { errorTitle, errorMessage } = handleFirebaseError(error, 'load vehicle inspection data');
+      Swal.fire({
+        icon: 'error',
+        title: errorTitle,
+        text: errorMessage,
+        confirmButtonColor: '#16a34a'
+      });
     });
 
     return () => unsubscribe();
@@ -105,19 +147,64 @@ const VehicleInspectionTable = ({ onEdit }) => {
 
     if (selectedYear !== 'all') {
       filtered = filtered.filter((entry) => {
+        // Skip year filtering for M1/N1 format dates
+        if (entry.date && entry.date.match(/^([MN])(\d+)$/)) {
+          return true;
+        }
         const entryYear = new Date(entry.date).getFullYear().toString();
         return entryYear === selectedYear;
       });
     }
 
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'recent-entry':
+          // First try timestamp, then parse M1/N1 format
+          if (a.timestamp && b.timestamp) {
+            return b.timestamp - a.timestamp;
+          } else if (a.timestamp) {
+            return -1;
+          } else if (b.timestamp) {
+            return 1;
+          } else {
+            return parseDateForSorting(b.date) - parseDateForSorting(a.date);
+          }
+        case 'oldest-entry':
+          // First try timestamp, then parse M1/N1 format
+          if (a.timestamp && b.timestamp) {
+            return a.timestamp - b.timestamp;
+          } else if (a.timestamp) {
+            return -1;
+          } else if (b.timestamp) {
+            return 1;
+          } else {
+            return parseDateForSorting(a.date) - parseDateForSorting(b.date);
+          }
+        case 'recent-edit':
+          // If both have updatedAt, sort by that; otherwise, prefer entries with updatedAt
+          if (a.updatedAt && b.updatedAt) {
+            return b.updatedAt - a.updatedAt;
+          } else if (a.updatedAt) {
+            return -1; // a comes first (has been edited)
+          } else if (b.updatedAt) {
+            return 1; // b comes first (has been edited)
+          } else {
+            // Neither has been edited, sort by creation date
+            return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+          }
+        default:
+          return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+      }
+    });
+
     setFilteredEntries(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, selectedYear, entries]);
+  }, [searchTerm, selectedYear, entries, sortBy]);
 
   const handleDelete = async (id, date) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
-      text: `Delete inspection sheet for ${new Date(date).toLocaleDateString('en-GB')}?`,
+      text: `Delete inspection sheet for ${date}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#16a34a',
@@ -175,7 +262,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
       title: '<span style="font-size: 1.25rem;">Vehicle Inspection Sheet Details</span>',
       html: `
         <div style="text-align: left; font-size: 0.85em;">
-          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Date:</strong> ${new Date(entry.date).toLocaleDateString('en-GB')}</p>
+          <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Date:</strong> ${entry.date}</p>
           <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>Watch Code:</strong> ${entry.watchCode || 'N/A'}</p>
           <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>INITIALS - HANDING OVER CREW:</strong> ${entry.handingOverCrew || 'N/A'}</p>
           <p style="margin-bottom: 10px; font-size: 0.9em;"><strong>INITIALS - TAKING OVER CREW:</strong> ${entry.takingOverCrew || 'N/A'}</p>
@@ -204,18 +291,52 @@ const VehicleInspectionTable = ({ onEdit }) => {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Vehicle Inspection');
 
+      // Add main heading - merge cells A1 to I1 for full display
+      worksheet.mergeCells('A1:I1');
+      const mainHeadingCell = worksheet.getCell('A1');
+      mainHeadingCell.value = 'WATCH AMBULANCE INSPECTION SHEET';
+      mainHeadingCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+      mainHeadingCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      // Add MONTH and YEAR inline with main heading (10cm apart)
+      const monthCell = worksheet.getCell('J1');
+      monthCell.value = 'MONTH';
+      monthCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      monthCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      const yearCell = worksheet.getCell('S1');
+      yearCell.value = 'YEAR';
+      yearCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      yearCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      // Add VEHICLE REGISTRATION NO under main heading
+      const vehicleRegCell = worksheet.getCell('A2');
+      vehicleRegCell.value = 'VEHICLE REGISTRATION NO:';
+      vehicleRegCell.font = { name: 'Calibri', size: 10, bold: false, color: { argb: 'FF000000' } };
+      vehicleRegCell.alignment = { horizontal: 'left', vertical: 'center' };
+
+      // Add STATION and sub heading inline with 10cm spacing
+      const stationCell = worksheet.getCell('A3');
+      stationCell.value = 'STATION';
+      stationCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      stationCell.alignment = { horizontal: 'center', vertical: 'center' };
+
+      const subHeadingCell = worksheet.getCell('J3');
+      subHeadingCell.value = 'TO BE APPLIED AT THE BEGINNING OF EVERY SHIFT';
+      subHeadingCell.font = { name: 'Calibri', size: 10, bold: false, color: { argb: 'FF000000' } };
+      subHeadingCell.alignment = { horizontal: 'left', vertical: 'center' };
+
+      // Add empty row for spacing
+      worksheet.addRow([]);
+      worksheet.addRow([]);
+
       // Create header row with Date, Watch Code first, inspection items, then crew columns last
       const headers = ['DATE', 'WATCH CODE', ...INSPECTION_ITEMS, 'INITIALS - HANDING OVER CREW', 'INITIALS - TAKING OVER CREW'];
       worksheet.addRow(headers);
 
       // Style header row
-      const headerRow = worksheet.getRow(1);
-      headerRow.font = { name: 'Calibri Light', color: { argb: 'FFFFFFFF' }, size: 12 };
-      headerRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF16a34a' }
-      };
+      const headerRow = worksheet.getRow(6);
+      headerRow.font = { name: 'Calibri', color: { argb: 'FF000000' }, size: 11, bold: true };
       headerRow.alignment = { 
         vertical: 'bottom', 
         horizontal: 'center',
@@ -236,11 +357,10 @@ const VehicleInspectionTable = ({ onEdit }) => {
 
       // Add data rows
       filteredEntries.forEach(entry => {
-        const formattedDate = new Date(entry.date).toLocaleDateString('en-GB');
         const checklistData = entry.checklistData || {};
         
         const rowData = [
-          formattedDate,
+          entry.date, // Use raw date value (M1, N1, etc.) instead of converting to Date
           entry.watchCode || '',
           ...INSPECTION_ITEMS.map(item => checklistData[itemKeyMap[item]] || ''),
           entry.handingOverCrew || '',
@@ -249,38 +369,8 @@ const VehicleInspectionTable = ({ onEdit }) => {
 
         const dataRow = worksheet.addRow(rowData);
 
-        // Color code the status cells (inspection items are now columns 3 to N)
-        INSPECTION_ITEMS.forEach((item, index) => {
-          const cellIndex = index + 3; // Starting after Date, Watch Code
-          const cell = dataRow.getCell(cellIndex);
-          const value = checklistData[itemKeyMap[item]];
-          
-          if (value === 'OK') {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFD1FAE5' } // Light green
-            };
-          } else if (value === 'NF') {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFFED7AA' } // Light orange
-            };
-          } else if (value === 'A') {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFFECACA' } // Light red
-            };
-          } else if (value === 'D') {
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFFEF3C7' } // Light yellow
-            };
-          }
-        });
+        // Remove date formatting since we're using raw text values
+        // dataRow.getCell(1).numFmt = 'dd/mm/yyyy';
       });
 
       // Add borders to all cells
@@ -317,18 +407,16 @@ const VehicleInspectionTable = ({ onEdit }) => {
     }
   };
 
-  const indexOfLastEntry = currentPage * entriesPerPage;
-  const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-  const currentEntries = filteredEntries.slice(indexOfFirstEntry, indexOfLastEntry);
-  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage);
-
-  const years = ['all', ...new Set(entries.map((entry) => new Date(entry.date).getFullYear().toString()))];
+  const years = ['all', ...new Set(entries
+    .filter(entry => !entry.date || !entry.date.match(/^([MN])(\d+)$/)) // Filter out M1/N1 format dates
+    .map((entry) => new Date(entry.date).getFullYear().toString())
+  )];
 
   return (
     <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} p-6 rounded-lg shadow-md mt-6`}>
       <div className="flex justify-between items-center mb-6">
         <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-          Vehicle Inspection Sheet
+          WATCH AMBULANCE INSPECTION SHEET
         </h2>
         <button
           onClick={exportToExcel}
@@ -339,7 +427,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <input
           type="text"
           placeholder="Search by date, KM, watch code, crew..."
@@ -351,21 +439,44 @@ const VehicleInspectionTable = ({ onEdit }) => {
               : 'bg-white border-gray-300 text-gray-900'
           }`}
         />
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
-            theme === 'dark'
-              ? 'bg-gray-700 border-gray-600 text-white'
-              : 'bg-white border-gray-300 text-gray-900'
-          }`}
-        >
-          {years.map((year) => (
-            <option key={year} value={year}>
-              {year === 'all' ? 'All Years' : year}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col">
+          <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+            Filter by Year:
+          </label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
+              theme === 'dark'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
+            }`}
+          >
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year === 'all' ? 'All Years' : year}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+            Sort By:
+          </label>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
+              theme === 'dark'
+                ? 'bg-gray-700 border-gray-600 text-white'
+                : 'bg-white border-gray-300 text-gray-900'
+            }`}
+          >
+            <option value="recent-entry">Most Recent Entries</option>
+            <option value="oldest-entry">Oldest Entries First</option>
+            <option value="recent-edit">Recently Edited</option>
+          </select>
+        </div>
       </div>
 
       {/* Table */}
@@ -394,8 +505,8 @@ const VehicleInspectionTable = ({ onEdit }) => {
             </tr>
           </thead>
           <tbody className={theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}>
-            {currentEntries.length > 0 ? (
-              currentEntries.map((entry) => {
+            {filteredEntries.length > 0 ? (
+              filteredEntries.map((entry) => {
                 const checklistData = entry.checklistData || {};
                 const totalItems = INSPECTION_ITEMS.length;
                 const checkedItems = Object.values(checklistData).filter(val => val !== '').length;
@@ -403,7 +514,20 @@ const VehicleInspectionTable = ({ onEdit }) => {
 
                 return (
                   <tr key={entry.id} className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <td className="px-4 py-3">{new Date(entry.date).toLocaleDateString('en-GB')}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span>{entry.date}</span>
+                        {entry.updatedAt && (
+                          <span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
+                            theme === 'dark' 
+                              ? 'bg-blue-900 text-blue-200' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            Edited
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3">{entry.watchCode || 'N/A'}</td>
                     <td className="px-4 py-3">{entry.handingOverCrew || 'N/A'}</td>
                     <td className="px-4 py-3">{entry.takingOverCrew || 'N/A'}</td>
@@ -454,29 +578,6 @@ const VehicleInspectionTable = ({ onEdit }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 };
