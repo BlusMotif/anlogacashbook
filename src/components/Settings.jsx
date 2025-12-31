@@ -5,7 +5,6 @@ import { ref, get, set, push } from 'firebase/database';
 import Swal from 'sweetalert2';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useTheme } from '../ThemeContext';
-import DatabaseConnectionTest from './DatabaseConnectionTest';
 
 const Settings = () => {
   const { theme } = useTheme();
@@ -1093,11 +1092,6 @@ const Settings = () => {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Database Connection Test */}
-        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} p-6 rounded-xl`}>
-          <DatabaseConnectionTest />
         </div>
       </div>
     </div>

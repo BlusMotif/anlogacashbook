@@ -156,7 +156,12 @@ const Dashboard = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        // Reset to welcome page on fresh login
+        // Clear any saved page state and always start with welcome page on login
+        try {
+          localStorage.removeItem('currentPage');
+        } catch (error) {
+          console.warn('Could not clear localStorage');
+        }
         setCurrentPage('welcome');
       } else {
         // User is not authenticated, redirect to login
