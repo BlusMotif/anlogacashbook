@@ -93,10 +93,14 @@ const GoCardTable = () => {
         console.log('Raw data from database:', data);
 
         if (data) {
-          const userEntries = Object.keys(data).map(key => ({
-            id: key,
-            ...data[key]
-          })).filter(entry => entry.createdBy === user.uid).sort((a, b) => new Date(a.date) - new Date(b.date));
+          const userEntries = Object.keys(data).map(key => {
+            const entry = { id: key, ...data[key] };
+            // Ensure timestamp exists - use date as fallback for old entries
+            if (!entry.timestamp && entry.date) {
+              entry.timestamp = new Date(entry.date).getTime();
+            }
+            return entry;
+          }).filter(entry => entry.createdBy === user.uid).sort((a, b) => new Date(a.date) - new Date(b.date));
 
           console.log('Filtered user entries:', userEntries.length);
           setEntries(userEntries);
@@ -142,13 +146,15 @@ const GoCardTable = () => {
       filtered = filtered.filter(entry => new Date(entry.date).getFullYear().toString() === selectedYear);
     }
 
-    // Apply sorting
-    filtered.sort((a, b) => {
+    // Create a new array copy before sorting to ensure React detects the change
+    const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'recent-entry':
-          return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+          // Sort by timestamp (most recent first)
+          return (b.timestamp || 0) - (a.timestamp || 0);
         case 'oldest-entry':
-          return new Date(a.timestamp || a.date) - new Date(b.timestamp || b.date);
+          // Sort by timestamp (oldest first)
+          return (a.timestamp || 0) - (b.timestamp || 0);
         case 'recent-edit':
           // If both have updatedAt, sort by that; otherwise, prefer entries with updatedAt
           if (a.updatedAt && b.updatedAt) {
@@ -158,15 +164,15 @@ const GoCardTable = () => {
           } else if (b.updatedAt) {
             return 1; // b comes first (has been edited)
           } else {
-            // Neither has been edited, sort by creation date
-            return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+            // Neither has been edited, sort by creation timestamp
+            return (b.timestamp || 0) - (a.timestamp || 0);
           }
         default:
-          return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+          return (b.timestamp || 0) - (a.timestamp || 0);
       }
     });
 
-    setFilteredEntries(filtered);
+    setFilteredEntries(sorted);
   }, [entries, search, dateFrom, selectedYear, sortBy]);
 
   // Simplified scroll handling - removed complex touch/wheel logic

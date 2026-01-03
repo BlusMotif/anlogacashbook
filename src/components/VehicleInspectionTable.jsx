@@ -160,27 +160,11 @@ const VehicleInspectionTable = ({ onEdit }) => {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'recent-entry':
-          // First try timestamp, then parse M1/N1 format
-          if (a.timestamp && b.timestamp) {
-            return b.timestamp - a.timestamp;
-          } else if (a.timestamp) {
-            return -1;
-          } else if (b.timestamp) {
-            return 1;
-          } else {
-            return parseDateForSorting(b.date) - parseDateForSorting(a.date);
-          }
+          // Sort by timestamp (most recent first)
+          return (b.timestamp || 0) - (a.timestamp || 0);
         case 'oldest-entry':
-          // First try timestamp, then parse M1/N1 format
-          if (a.timestamp && b.timestamp) {
-            return a.timestamp - b.timestamp;
-          } else if (a.timestamp) {
-            return -1;
-          } else if (b.timestamp) {
-            return 1;
-          } else {
-            return parseDateForSorting(a.date) - parseDateForSorting(b.date);
-          }
+          // Sort by timestamp (oldest first)
+          return (a.timestamp || 0) - (b.timestamp || 0);
         case 'recent-edit':
           // If both have updatedAt, sort by that; otherwise, prefer entries with updatedAt
           if (a.updatedAt && b.updatedAt) {
@@ -190,11 +174,11 @@ const VehicleInspectionTable = ({ onEdit }) => {
           } else if (b.updatedAt) {
             return 1; // b comes first (has been edited)
           } else {
-            // Neither has been edited, sort by creation date
-            return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+            // Neither has been edited, sort by creation timestamp
+            return (b.timestamp || 0) - (a.timestamp || 0);
           }
         default:
-          return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+          return (b.timestamp || 0) - (a.timestamp || 0);
       }
     });
 
@@ -295,7 +279,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
       worksheet.mergeCells('A1:I1');
       const mainHeadingCell = worksheet.getCell('A1');
       mainHeadingCell.value = 'WATCH AMBULANCE INSPECTION SHEET';
-      mainHeadingCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+      mainHeadingCell.font = { name: 'Calibri', size: 12, bold: false, color: { argb: 'FF000000' } };
       mainHeadingCell.alignment = { horizontal: 'center', vertical: 'center' };
 
       // Add MONTH and YEAR inline with main heading (10cm apart)
@@ -336,7 +320,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
 
       // Style header row
       const headerRow = worksheet.getRow(6);
-      headerRow.font = { name: 'Calibri', color: { argb: 'FF000000' }, size: 11, bold: true };
+      headerRow.font = { name: 'Calibri', color: { argb: 'FF000000' }, size: 11, bold: false };
       headerRow.alignment = { 
         vertical: 'bottom', 
         horizontal: 'center',
