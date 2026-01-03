@@ -133,7 +133,8 @@ const VehicleInspectionTable = ({ onEdit }) => {
   }, []);
 
   useEffect(() => {
-    let filtered = entries;
+    // Create a shallow copy to avoid mutating the original entries array
+    let filtered = [...entries];
 
     if (searchTerm) {
       filtered = filtered.filter(

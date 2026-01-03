@@ -135,7 +135,8 @@ const GoCardTable = () => {
   }, [user]);
 
   useEffect(() => {
-    let filtered = entries;
+    // Create a shallow copy to avoid mutating the original entries array
+    let filtered = [...entries];
     if (search) {
       filtered = filtered.filter(entry => entry.merchant.toLowerCase().includes(search.toLowerCase()) || entry.attendant.toLowerCase().includes(search.toLowerCase()));
     }
@@ -146,8 +147,8 @@ const GoCardTable = () => {
       filtered = filtered.filter(entry => new Date(entry.date).getFullYear().toString() === selectedYear);
     }
 
-    // Create a new array copy before sorting to ensure React detects the change
-    const sorted = [...filtered].sort((a, b) => {
+    // Apply sorting
+    filtered.sort((a, b) => {
       switch (sortBy) {
         case 'default':
           // Default chronological order by date
@@ -175,7 +176,7 @@ const GoCardTable = () => {
       }
     });
 
-    setFilteredEntries(sorted);
+    setFilteredEntries(filtered);
   }, [entries, search, dateFrom, selectedYear, sortBy]);
 
   // Simplified scroll handling - removed complex touch/wheel logic
@@ -466,7 +467,8 @@ const GoCardTable = () => {
 
       // Add data rows
       filteredEntries.forEach(entry => {
-          const excelDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.date);
+          // Use the date entered by the user, not the timestamp
+          const excelDate = new Date(entry.date);
           const row = worksheet.addRow({
             date: excelDate,
             time: entry.time,
