@@ -90,7 +90,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [sortBy, setSortBy] = useState('recent-entry');
+  const [sortBy, setSortBy] = useState('default');
 
   useEffect(() => {
     const inspectionRef = ref(db, 'ambulanceInspection');
@@ -159,6 +159,9 @@ const VehicleInspectionTable = ({ onEdit }) => {
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
+        case 'default':
+          // Default chronological order (no sorting, keep original order)
+          return 0;
         case 'recent-entry':
           // Sort by timestamp (most recent first)
           return (b.timestamp || 0) - (a.timestamp || 0);
@@ -178,7 +181,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
             return (b.timestamp || 0) - (a.timestamp || 0);
           }
         default:
-          return (b.timestamp || 0) - (a.timestamp || 0);
+          return 0;
       }
     });
 
@@ -279,35 +282,34 @@ const VehicleInspectionTable = ({ onEdit }) => {
       worksheet.mergeCells('A1:I1');
       const mainHeadingCell = worksheet.getCell('A1');
       mainHeadingCell.value = 'WATCH AMBULANCE INSPECTION SHEET';
-      mainHeadingCell.font = { name: 'Calibri', size: 12, bold: false, color: { argb: 'FF000000' } };
+      mainHeadingCell.font = { name: 'Calibri', size: 11, bold: false, color: { argb: 'FF000000' } };
       mainHeadingCell.alignment = { horizontal: 'center', vertical: 'center' };
 
-      // Add MONTH and YEAR inline with main heading (10cm apart)
-      const monthCell = worksheet.getCell('J1');
+      // Add MONTH and YEAR inline with main heading (increased spacing)
+      const monthCell = worksheet.getCell('S1');
       monthCell.value = 'MONTH';
-      monthCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      monthCell.font = { name: 'Calibri', size: 11, bold: false, color: { argb: 'FF000000' } };
       monthCell.alignment = { horizontal: 'center', vertical: 'center' };
 
-      const yearCell = worksheet.getCell('S1');
+      const yearCell = worksheet.getCell('AB1');
       yearCell.value = 'YEAR';
-      yearCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
+      yearCell.font = { name: 'Calibri', size: 11, bold: false, color: { argb: 'FF000000' } };
       yearCell.alignment = { horizontal: 'center', vertical: 'center' };
 
-      // Add VEHICLE REGISTRATION NO under main heading
+      // Add VEHICLE REGISTRATION NO, STATION, and sub heading inline with 10cm spacing
       const vehicleRegCell = worksheet.getCell('A2');
       vehicleRegCell.value = 'VEHICLE REGISTRATION NO:';
-      vehicleRegCell.font = { name: 'Calibri', size: 10, bold: false, color: { argb: 'FF000000' } };
+      vehicleRegCell.font = { name: 'Calibri', size: 11, bold: false, color: { argb: 'FF000000' } };
       vehicleRegCell.alignment = { horizontal: 'left', vertical: 'center' };
 
-      // Add STATION and sub heading inline with 10cm spacing
-      const stationCell = worksheet.getCell('A3');
+      const stationCell = worksheet.getCell('S2');
       stationCell.value = 'STATION';
-      stationCell.font = { name: 'Calibri', size: 9, bold: false, color: { argb: 'FF000000' } };
-      stationCell.alignment = { horizontal: 'center', vertical: 'center' };
+      stationCell.font = { name: 'Calibri', size: 11, bold: false, color: { argb: 'FF000000' } };
+      stationCell.alignment = { horizontal: 'left', vertical: 'center' };
 
-      const subHeadingCell = worksheet.getCell('J3');
+      const subHeadingCell = worksheet.getCell('AB2');
       subHeadingCell.value = 'TO BE APPLIED AT THE BEGINNING OF EVERY SHIFT';
-      subHeadingCell.font = { name: 'Calibri', size: 10, bold: false, color: { argb: 'FF000000' } };
+      subHeadingCell.font = { name: 'Calibri', size: 11, bold: false, color: { argb: 'FF000000' } };
       subHeadingCell.alignment = { horizontal: 'left', vertical: 'center' };
 
       // Add empty row for spacing
@@ -319,7 +321,7 @@ const VehicleInspectionTable = ({ onEdit }) => {
       worksheet.addRow(headers);
 
       // Style header row
-      const headerRow = worksheet.getRow(6);
+      const headerRow = worksheet.getRow(5);
       headerRow.font = { name: 'Calibri', color: { argb: 'FF000000' }, size: 11, bold: false };
       headerRow.alignment = { 
         vertical: 'bottom', 

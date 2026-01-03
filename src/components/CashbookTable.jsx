@@ -33,7 +33,7 @@ const CashbookTable = () => {
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
-  const [sortBy, setSortBy] = useState('recent-entry');
+  const [sortBy, setSortBy] = useState('default');
   const [user, setUser] = useState(null);
   const [isTableCollapsed, setIsTableCollapsed] = useState(false);
 
@@ -146,6 +146,9 @@ const CashbookTable = () => {
     // Create a new array copy before sorting to ensure React detects the change
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
+        case 'default':
+          // Default chronological order by date
+          return new Date(a.date) - new Date(b.date);
         case 'recent-entry':
           // Sort by timestamp (most recent first)
           return (b.timestamp || 0) - (a.timestamp || 0);
@@ -165,7 +168,7 @@ const CashbookTable = () => {
             return (b.timestamp || 0) - (a.timestamp || 0);
           }
         default:
-          return (b.timestamp || 0) - (a.timestamp || 0);
+          return new Date(a.date) - new Date(b.date);
       }
     });
 
@@ -585,6 +588,7 @@ const CashbookTable = () => {
             onChange={(e) => setSortBy(e.target.value)}
             className={`w-full px-4 py-3 border ${theme === 'dark' ? 'border-gray-600 bg-gray-700 text-white' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base`}
           >
+            <option value="default">Default Order</option>
             <option value="recent-entry">Most Recent Entries</option>
             <option value="oldest-entry">Oldest Entries First</option>
             <option value="recent-edit">Recently Edited</option>
